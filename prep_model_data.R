@@ -2,15 +2,13 @@
 ##
 ## Script name: prep_model_data.R
 ##
-## Purpose of script: Take data from the NERR website and format for use in 
-##                    future R scripts
+## Purpose of script: Prepare data from NESS to be used in future scripts
 ##
 ## Author: Peter Regier and Matt Duggan
 ##
 ## Date Created: 2021-05-28
 ##
-## Copyright (c) PNNL, 2021
-## Email: mattduggan2018@gmail.com
+## Email: peter.regier@pnnl.gov
 ##
 ## ---------------------------
 ##

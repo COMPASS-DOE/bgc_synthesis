@@ -2,18 +2,17 @@
 ##
 ## Script name: prep_data_constants.R
 ##
-## Purpose of script: A group of constant variable names
+## Purpose of script: A group of constants used in prep data
 ##
 ## Author: Peter Regier and Matt Duggan
 ##
 ## Date Created: 2021-05-28
 ##
-## Copyright (c) PNNL, 2021
-## Email: mattduggan2018@gmail.com
+## Email: peter.regier@pnnl.gov
 ##
 ## ---------------------------
 ##
-## Notes: 
+## Notes:
 ##   
 ##
 ## ---------------------------
