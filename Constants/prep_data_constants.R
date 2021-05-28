@@ -1,3 +1,23 @@
+## ---------------------------
+##
+## Script name: prep_data_constants.R
+##
+## Purpose of script: A group of constant variable names
+##
+## Author: Peter Regier and Matt Duggan
+##
+## Date Created: 2021-05-28
+##
+## Copyright (c) PNNL, 2021
+## Email: mattduggan2018@gmail.com
+##
+## ---------------------------
+##
+## Notes: 
+##   
+##
+## ---------------------------
+
 #clear workspace
 rm(list=ls())
 

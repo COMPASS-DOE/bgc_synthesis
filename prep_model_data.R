@@ -1,3 +1,24 @@
+## ---------------------------
+##
+## Script name: prep_model_data.R
+##
+## Purpose of script: Take data from the NERR website and format for use in 
+##                    future R scripts
+##
+## Author: Peter Regier and Matt Duggan
+##
+## Date Created: 2021-05-28
+##
+## Copyright (c) PNNL, 2021
+## Email: mattduggan2018@gmail.com
+##
+## ---------------------------
+##
+## Notes:
+##   
+##
+## ---------------------------
+
 # This script takes all the raw data files downloaded from NERR and combines them
 # into two datasets, one for each NERR site, which are used for modeling. 
 

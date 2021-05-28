@@ -1,3 +1,23 @@
+## ---------------------------
+##
+## Script name: prep_data_functions.R
+##
+## Purpose of script: A group of defined functions for the preperation of data
+##
+## Author: Peter Regier and Matt Duggan
+##
+## Date Created: 2021-05-28
+##
+## Copyright (c) PNNL, 2021
+## Email: mattduggan2018@gmail.com
+##
+## ---------------------------
+##
+## Notes: 
+##   
+##
+## ---------------------------
+
 #clear workspace
 rm(list=ls())
 
