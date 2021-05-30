@@ -3,6 +3,4 @@
 .RData
 .Ruserdata
 bgc_synthesis.Rproj
-data_NERR/cbv_met_nuts/
-data_NERR/cbv_wq/
-data_NERR/owc/
+data_NERR/
