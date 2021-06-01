@@ -18,7 +18,7 @@
 ## ---------------------------
 
 #clear workspace
-rm(list=ls())
+#rm(list=ls())
 
 # Predefined Global Variables
 bin_rate = "15 min"
@@ -26,8 +26,16 @@ flag_list <- c(0, 4)
 days_to_lag = 1
 
 ##  TODO Define scripts for reading in data ##
-filepath_in = "./data/nerr/210225_csvs/"
-filepath_out = "./data/nerr/"
+
+#Set directories to data input location
+filepath_in = "data_NERR/"
+
+#Set directories to data output location
+filepath_out = "data_NERR/output"
+
+# Set directories for each location
+cbv_directory <- paste0(filepath_in, "cbv")
+owc_directory <- paste0(filepath_in, "owc")
 ##
 ##
 
@@ -41,7 +49,7 @@ end_Q = "2021-01-01" # end date for data to be retrieved
 # Defined Data Columns
 wq_vars = c("Temp", "SpCond", "DO_mgl", "Depth","pH", "Turb")
 met_vars = c("ATemp", "RH", "BP", "WSpd", "Wdir", "TotPAR")
-all_vars = append(wq_vars, met_vars)
+all_vars = c(wq_vars, met_vars)
 
 #Lock variables from being edited within future R scripts
 lapply(ls(), lockBinding, env = globalenv())
