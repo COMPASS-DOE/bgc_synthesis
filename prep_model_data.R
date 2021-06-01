@@ -41,14 +41,6 @@
 ##################################################
 
 rm(list=ls()) # clear workspace
-
-#Predefined constant variables in preparation of data
-source("Constants/prep_data_constants.R")
-
-#Predefined functions used in preparation of data
-source("Functions/prep_data_functions.R")
-
-
 #load packages
 require(pacman) # easy way to load packages
 pacman::p_load(hms, #extract time from datetime, 
@@ -62,23 +54,28 @@ pacman::p_load(hms, #extract time from datetime,
                dataRetrieval) # USGS's package to pull data from their portal
 
 
+#Predefined constant variables in preparation of data
+source("./Constants/prep_data_constants.R")
+
+#Predefined functions used in preparation of data
+source("./Functions/prep_data_functions.R")
+
+
+
 ##################################################
 ##### READ IN DATA
 ##################################################
 
 tic("run script") #measure how long the script takes
 
-# Set directories for reading in wq and met data
-cbv_directory <- paste0(filepath_in, "cbv/")
-owc_directory <- paste0(filepath_in, "owc/")
-
 # Read in pre-processed nutrients
-cbv_nuts_raw <- read_data(cbv_directory, "nut")
-owc_nuts_raw <- read_data(owc_directory, "nut")
+cbv_nuts_raw <- read_dir(paste0(cbv_directory, "/nutrients"))
+owc_nuts_raw <- read_dir(paste0(owc_directory, "/nutrients"))
 
-cbv_nuts <- process_nuts(cbv_nuts_raw, bin_rate)
-owc_nuts <- process_nuts(owc_nuts_raw, bin_rate)
+cbv_nuts <- process_nuts(cbv_nuts_raw, bin_rate = bin_rate)
+owc_nuts <- process_nuts(owc_nuts_raw, bin_rate = bin_rate)
 
+toc()
 ## TODO Add site column (datetime_site is deprecated now)
 
 
