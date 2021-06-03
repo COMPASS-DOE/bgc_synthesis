@@ -1,1 +1,2 @@
 data_NERR/** filter=lfs diff=lfs merge=lfs -text
+data_NERR/**/* filter=lfs diff=lfs merge=lfs -text

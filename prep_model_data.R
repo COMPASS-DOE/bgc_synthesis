@@ -81,17 +81,17 @@ toc()
 
 # Read in water quality, then format
 tic("prep wq data")
-cbv_wq_raw <- read_data(cbv_directory, "wq")
+cbv_wq_raw <- read_dir(paste0(cbv_directory, "/water_quality"))
 cbv_wq <- prep_wq(cbv_wq_raw) %>% bin_wq()
-owc_wq_raw <- read_data(owc_directory, "wq")
+owc_wq_raw <- read_dir(paste0(owc_directory, "/water_quality"))
 owc_wq <- prep_wq(owc_wq_raw) %>% bin_wq()
 toc()
 
 # read in meteorology, then format
 tic("prep met data")
-cbv_met_raw <- read_data(cbv_directory, "met")
+cbv_met_raw <- read_dir(paste0(cbv_directory, "/meteorology"))
 cbv_met <- prep_met(cbv_met_raw) %>% bin_met()
-owc_met_raw <- read_data(owc_directory, "met")
+owc_met_raw <- read_dir(paste0(owc_directory, "/meteorology"))
 owc_met <- prep_met(owc_met_raw) %>% bin_met()
 toc()
 
@@ -138,12 +138,12 @@ beep()
 toc() #full script timer (1370s)
 
 # Write out data for models
-write_csv(cbv_combined %>% filter(!is.na(datetime_round)), paste0(filepath_out, "cbv_for_models.csv"))
-write_csv(owc_combined %>% filter(!is.na(datetime_round)), paste0(filepath_out, "owc_for_models.csv"))
+write_csv(cbv_combined %>% filter(!is.na(datetime_round)), paste0(filepath_out, "/cbv_for_models.csv"))
+write_csv(owc_combined %>% filter(!is.na(datetime_round)), paste0(filepath_out, "/owc_for_models.csv"))
 
 # Write out high-frequency data for use later
-write_csv(hf_cbv %>% filter(datetime_round >= "2002-01-01"), paste0(filepath_out, "cbv_hf_wq.csv"))
-write_csv(hf_owc %>% filter(datetime_round >= "2002-01-01"), paste0(filepath_out, "owc_hf_wq.csv"))
+write_csv(hf_cbv %>% filter(datetime_round >= "2002-01-01"), paste0(filepath_out, "/cbv_hf_wq.csv"))
+write_csv(hf_owc %>% filter(datetime_round >= "2002-01-01"), paste0(filepath_out, "/owc_hf_wq.csv"))
 
 
 
