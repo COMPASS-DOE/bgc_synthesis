@@ -31,32 +31,7 @@ p_load(tidyverse, ggplot2, cowplot, lubridate, tidymodels,splitTools, ggthemes, 
 
 #Load in necessary packages
 source("Functions/train_Rforest_functions.R")
-
-#######################################
-#####Constants
-#######################################
-
-# Set columns for independent and dependent variables
-dependents <- c("chla", "nh4", "no3", "po4")
-wq_predictors <- c("Temp.mean", 
-                   "SpCond.mean", 
-                   "DO_mgl.mean", 
-                   "Depth.mean", 
-                   "pH.mean", 
-                   "Turb.mean", 
-                   "q_cfs.mean.5", 
-                   "sin_doy")
-met_predictors <- c("ATemp.mean", 
-                    "RH.mean", 
-                    "BP.mean", 
-                    "WSpd.mean", 
-                    "Wdir.mean", 
-                    "TotPAR.mean", 
-                    "TotPrcp.mean.5", 
-                    "sin_doy")
-all_predictors <- unique(append(wq_predictors, met_predictors))
-
-predictors <- list(wq_predictors, met_predictors, all_predictors)
+source("Constants/initial_model_constants.R")
 
 #######################################
 #####Code
