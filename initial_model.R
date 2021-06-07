@@ -115,53 +115,63 @@ reference_table <- tibble(dep = character(), predictor = character()) %>%
   add_column(paste0(.$dep, "-", .$predictor)) %>% 
   rename(name = 3)
 
-#Train data on cbv location
-result_cbv_ranger <- parApply(cl,reference_table,1, function(x) choose_inputs(cbv_all, 
-                                                                              x[1], 
-                                                                              eval(parse(text = x[2])), 
-                                                                              x[3],
-                                                                              modelType = "ranger",
-                                                                              importance = "impurity"))
-#Train data on owc location
-result_owc_ranger <- parApply(cl,reference_table,1, function(x) choose_inputs(owc_all, 
-                                                                              x[1], 
-                                                                              eval(parse(text = x[2])), 
-                                                                              x[3],
-                                                                              modelType = "ranger",
-                                                                              importance = "impurity"))
-#Train data on cbv location
-result_cbv_rf <- parApply(cl,reference_table,1, function(x) choose_inputs(cbv_all, 
-                                                                          x[1], 
-                                                                          eval(parse(text = x[2])), 
-                                                                          x[3], 
-                                                                          modelType = "randomForest", 
-                                                                          importance = TRUE))
-#Train data on owc location
-result_owc_rf <- parApply(cl,reference_table,1, function(x) choose_inputs(owc_all, 
-                                                                          x[1], 
-                                                                          eval(parse(text = x[2])), 
-                                                                          x[3],
-                                                                          modelType = "randomForest", 
-                                                                          importance = TRUE))
+#Train data on cbv location with ranger
+result_cbv_ranger <- parApply(cl,reference_table,1, 
+                              function(x) choose_inputs(
+                                                      cbv_all, 
+                                                      x[1], 
+                                                      eval(parse(text = x[2])), 
+                                                      x[3],
+                                                      modelType = "ranger",
+                                                      importance = "impurity"))
+#Train data on owc location with ranger
+result_owc_ranger <- parApply(cl,reference_table,1, 
+                              function(x) choose_inputs(
+                                                      owc_all, 
+                                                      x[1], 
+                                                      eval(parse(text = x[2])), 
+                                                      x[3],
+                                                      modelType = "ranger",
+                                                      importance = "impurity"))
+#Train data on cbv location with random forest
+result_cbv_rf <- parApply(cl,reference_table,1, 
+                          function(x) choose_inputs(
+                                                  cbv_all, 
+                                                  x[1], 
+                                                  eval(parse(text = x[2])), 
+                                                  x[3], 
+                                                  modelType = "randomForest", 
+                                                  importance = TRUE))
+#Train data on owc location with random forest
+result_owc_rf <- parApply(cl,reference_table,1, 
+                          function(x) choose_inputs(
+                                                  owc_all, 
+                                                  x[1], 
+                                                  eval(parse(text = x[2])), 
+                                                  x[3],
+                                                  modelType = "randomForest", 
+                                                  importance = TRUE))
 
 #END parrallel processing
 stopCluster(cl)
 
-
-
 source("Functions/plot_Model_Functions.R")
 
+#Compare ranger and random forest metrics in cbv location
 gatheredMetrics_cbv <- gatherMetrics(result_cbv_ranger, result_cbv_rf)
 
-sumMetrics <- summarizeMetrics(gatheredMetrics_cbv)
+sumMetrics_CBV <- summarizeMetrics(gatheredMetrics_cbv)
+
+sumMetrics_CBV
 
 
-sumMetrics
+#Compare ranger and random forest metrics in owc location
+gatheredMetrics_owc <- gatherMetrics(result_owc_ranger, result_owc_rf)
 
-gatheredMetrics_cbv <- gatherMetrics(result_owc_ranger, result_owc_rf)
+sumMetrics_OWC <- summarizeMetrics(gatheredMetrics_owc) 
 
-sumMetrics <- summarizeMetrics(gatheredMetrics_cbv) 
+sumMetrics_OWC
 
 
-sumMetrics
+
 
