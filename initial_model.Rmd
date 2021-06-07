@@ -1,5 +1,5 @@
 ---
-title: "initial_model"
+title: "TrainWorkflow"
 author: "Matt Duggan"
 date: "6/7/2021"
 output: pdf_document
@@ -7,24 +7,65 @@ output: pdf_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+
+# Load packages
+require(pacman)
+p_load(tidyverse, ggplot2, cowplot, lubridate, tidymodels,splitTools, ggthemes, parallel, ggpubr, hydroGOF, kableExtra)
+
+#Load in necessary functions
+source("Functions/train_Rforest_functions.R")
+
+#Load in necessary constants
+source("Constants/train_model_constants.R")
 ```
 
-## R Markdown
+# Introduction
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+We are interested in understanding the most important variables that affect 
+bigeochemical signals in water chemistry within estuaries, arguably the most 
+valuable bodies of water for maintaining water chemistry for our oceans. In order 
+to evaluate these variables that act as predictors for these signals, we are 
+constructing random forests to predict variable importance for four significant
+bio signatures: ammonium (NH4), phosphate (PO4), nitrate (NO3), and Chlorophyll
+A (chla). unknown functions for the script can be found in the 
+Functions/train_Rforest_functions.R scipt and constants, such as predictors are 
+in the Constants/train_model_constants.R script. 
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
-```{r cars}
-summary(cars)
+## Data Preperation
+
+The data is saved as files across years and at two different stations: 
+
+1. Old Women Creek (tributary to Lake Erie)
+2. York River Estuary (tributary to Chesapeake Bay)
+
+Therefore for each station, the data must be combined while taking into consideration
+the removal of outliers and missing data. As a forwarning, for the entirity of the script 
+we try to stay consistent with the tidyverse syntax and conventions, so we highly suggest
+reading the tidyverse documentation before continuing deeper in the script. 
+
+```{r prepData, message=FALSE, tidy=TRUE}
+
+#prepare data from cbv
+cbv_all <- read_station("./data_NERR/output/cbv_for_models.csv") %>% 
+  filter(is.na(no3) | no3 < 1, 
+         is.na(po4) | po4 < 0.15, 
+         is.na(chla) | chla < 200)
+
+#prepare data from owc
+owc_all <- read_station("./data_NERR/output/owc_for_models.csv") %>% 
+  filter(is.na(no3) | no3 < 8, 
+         is.na(po4) | po4 < 0.1)
+
 ```
 
-## Including Plots
 
-You can also embed plots, for example:
+```{r showData}
+data <- owc_all[1:5,]
+split(1:ncol(data), sort(rep_len(1:5, ncol(data)))) %>%
+  map(~select(data, .)) %>%
+  map(kable, booktabs = T) %>%
+  map(kable_styling)
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+
 ```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
