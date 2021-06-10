@@ -28,10 +28,10 @@ createRecipe <- function(dt_train, dt_clean){
   dt_recipe <- 
     # which consists of the formula (outcome ~ predictors)
     recipe(f, 
-           data = dt_clean) %>%
+           data = dt_clean)# %>%
     # and some pre-processing steps
-    step_normalize(all_numeric()) %>%
-    step_knnimpute(all_predictors())
+    # step_normalize(all_numeric()) %>%
+    #step_knnimpute(all_predictors())
   
   return(dt_recipe)
 }
@@ -44,7 +44,7 @@ specifyModel <- function(pkge, t, importance){
       # specify that the model is a random forest
       rand_forest() %>%
       # specify that the `mtry` parameter needs to be tuned
-      set_args(mtry = tune()) %>%
+      set_args(mtry = tune(), ntrees = 1000) %>%
       # select the engine/package that underlies the model
       set_engine(pkge, importance = importance) %>%
       # choose either the continuous regression or binary classification mode
@@ -56,7 +56,7 @@ specifyModel <- function(pkge, t, importance){
       # specify that the model is a random forest
       rand_forest() %>%
       # specify that the `mtry` parameter needs to be tuned
-      set_args(mtry = t) %>%
+      set_args(mtry = t, ntrees = 1000) %>%
       # select the engine/package that underlies the model
       set_engine(pkge, importance = importance) %>%
       # choose either the continuous regression or binary classification mode
@@ -128,8 +128,36 @@ showEval <- function(test_predictions, label){
   return(Fig)
 }
 
+grabTheImportance <- function(r, t){
+  
+  if(t == "ranger"){
+    importance <- r$fit$fit$fit$variable.importance
+  } else if (t == "randomForest"){
+    importance <- r$fit$fit$fit$importance[,2]
+  } else {
+    stop("Not a valid architecture type: choose 'ranger' or 'randomForest'.")
+  }
+  
+  return(importance)
+}
+
+createImportancePlot <- function(importance, label){
+  importance <- data.frame(importance)
+  y <- rownames(importance)
+  p <- ggplot(importance, aes(x = importance, y = reorder(y, importance), fill = y))+
+    geom_bar(position="dodge", stat="identity")+
+    theme(axis.title.x=element_blank(),
+          axis.title.y=element_blank(), 
+          panel.background = element_rect(fill = "white",
+                                          colour = "white"), 
+          axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+    ggtitle(label)+
+    theme(legend.position = "none") 
+  return(p)
+}
+
 # Create model, and return useful things (data, plots, stats)
-choose_inputs <- function(all_data, dep, pred, label, importance, prop = 3/4, t = -1, modelType = "ranger") {
+choose_inputs <- function(all_data, dep, pred, label, importance, prop = 3/4, t = -1, modelType = "ranger", station = "") {
   
   #Clean and filter data set
   dt_clean <- all_data %>% 
@@ -176,9 +204,24 @@ choose_inputs <- function(all_data, dep, pred, label, importance, prop = 3/4, t 
   #9. Build Final Model
   final_model <- fit(rf_workflow, dt_clean)
   
+  #10. Build importance plots
+  importance <- grabTheImportance(final_model, modelType)
+  importancePlot <- createImportancePlot(importance, paste0(dep,": ", station))
+  
   #Return a list of the ggplot figure, the final fit, the best mtry, 
   #and the mtry at each fold
-  Fig_result <- list(Fig, final_model, rf_fit, all_metrics, correlations)
+  Fig_result <- list(Fig, 
+                     final_model, 
+                     rf_fit, 
+                     all_metrics, 
+                     correlations, 
+                     importancePlot)
   
+  names(Fig_result) <- c("plot", 
+                         "finalModel", 
+                         "trainTestModel", 
+                         "metrics", 
+                         "correlations", 
+                         "importancePlot")
   return(Fig_result)
 }

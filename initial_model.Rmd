@@ -12,11 +12,14 @@ knitr::opts_chunk$set(echo = TRUE)
 require(pacman)
 p_load(tidyverse, ggplot2, cowplot, lubridate, tidymodels,splitTools, ggthemes, parallel, ggpubr, hydroGOF, kableExtra)
 
-#Load in necessary functions
+#Load in necessary functions for training model
 source("Functions/train_Rforest_functions.R")
 
+#Load in necessary functions for testing model
+source("Functions/plot_Model_Functions.R")
+
 #Load in necessary constants
-source("Constants/train_model_constants.R")
+source("Constants/initial_model_constants.R")
 ```
 
 # Introduction
@@ -34,13 +37,15 @@ in the Constants/train_model_constants.R script.
 
 ## Data Preperation
 
-The data is saved as files across years and at two different stations: 
+We use approximately 20 years of data collected by the National Estuaries
+Research Reserve (NERR).The data is saved across years and for each 
+station: 
 
 1. Old Women Creek (tributary to Lake Erie)
 2. York River Estuary (tributary to Chesapeake Bay)
 
 Therefore for each station, the data must be combined while taking into consideration
-the removal of outliers and missing data. As a forwarning, for the entirity of the script 
+the removal of outliers and missing data. As a forewarning, for the entirity of the script 
 we try to stay consistent with the tidyverse syntax and conventions, so we highly suggest
 reading the tidyverse documentation before continuing deeper in the script. 
 
@@ -59,13 +64,163 @@ owc_all <- read_station("./data_NERR/output/owc_for_models.csv") %>%
 
 ```
 
+## Train Model Preperation
 
-```{r showData}
-data <- owc_all[1:5,]
-split(1:ncol(data), sort(rep_len(1:5, ncol(data)))) %>%
-  map(~select(data, .)) %>%
-  map(kable, booktabs = T) %>%
-  map(kable_styling)
+Since we are experimenting with different predictors, the best way to run 
+training is to run them in parallel. This is the standard process for 
+setting up the ports and running them in a cluster. Refer to the parallel
+package in base R for more details. 
 
+```{r setupParallel, echo = FALSE}
+
+#Create an apply function for parrallel computing
+numCores <- detectCores()-1
+
+#START cluster
+cl <- makeCluster(numCores, outfile ='')
+
+#export required constants
+clusterExport(cl, 
+              c("cbv_all", 
+              "owc_all"))
+
+#Export necessary libraries
+clusterEvalQ(cl, {
+  library(ggplot2)
+  library(tidyverse)
+  library(tidymodels)
+  library(tidyverse)
+  library(lubridate)
+  library(ggthemes)
+  library(hydroGOF)
+  source("Functions/train_Rforest_functions.R")
+  source("Constants/initial_model_constants.R")
+})
+```
+
+## Reference Table
+
+The reference table acts as a source for setup of project. For each run, we 
+defined a row for the random forest model training that included:
+
+1. Chemical Signal 
+2. Predictors 
+
+We could also include the station and model as new columns and refer to them within 
+our function. 
+
+```{r setupReferenceTable, echo=FALSE}
+
+reference_table <- tibble(dep = character(), predictor = character()) %>% 
+  add_row(dep = rep("nh4",3), predictor = c("met_predictors", 
+                                            "wq_predictors", 
+                                            "all_predictors")) %>% 
+  add_row(dep = rep("po4",3), predictor = c("met_predictors", 
+                                            "wq_predictors", 
+                                            "all_predictors")) %>% 
+  add_row(dep = rep("no3",3), predictor = c("met_predictors", 
+                                            "wq_predictors", 
+                                            "all_predictors")) %>% 
+  add_row(dep = rep("chla",3), predictor = c("met_predictors", 
+                                             "wq_predictors", 
+                                             "all_predictors")) %>% 
+  add_column(paste0(.$dep, "-", .$predictor)) %>% 
+  rename(name = 3)
+
+kable(reference_table) %>% 
+  kable_styling(bootstrap_options = "striped", full_width = F, position = "float_right")
+```
+
+## Train Random Forest
+
+We ran two models on two different R packages: 
+
+1. randomForest
+2. ranger
+
+Each model was created with three different predictor groups:
+
+1. Meteorology Data
+2. Water Quality Data
+3. All Data (Combination of meteorology and water quality data)
+
+Therefore, we will have 2(model types) x 3(predictor groups) x 4(signatures) seperate
+random forest models to compare. mtry (number of predictors randomely sampled 
+for each branching) is cross validated for optimization of the 
+forest for each group. The number of trees (ntrees) did not significantly 
+increase the performance of the model past 800, therefore we selected the default
+1000 trees to ensure we reached the highest accuracy within means. Reference the 
+train_Rforest_functions.R scripts for more information on training. The 
+training was mainly conducted in the conventions of the tidymodels R package. 
+
+```{r trainModels, echo=FALSE}
+#Train data on cbv location with ranger
+result_cbv_ranger <- parApply(cl,reference_table,1, 
+                              function(x) choose_inputs(
+                                                      cbv_all, 
+                                                      x[1], 
+                                                      eval(parse(text = x[2])), 
+                                                      x[3],
+                                                      modelType = "ranger",
+                                                      importance = "impurity"))
+#Train data on owc location with ranger
+result_owc_ranger <- parApply(cl,reference_table,1, 
+                              function(x) choose_inputs(
+                                                      owc_all, 
+                                                      x[1], 
+                                                      eval(parse(text = x[2])), 
+                                                      x[3],
+                                                      modelType = "ranger",
+                                                      importance = "impurity"))
+#Train data on cbv location with random forest
+result_cbv_rf <- parApply(cl,reference_table,1, 
+                          function(x) choose_inputs(
+                                                  cbv_all, 
+                                                  x[1], 
+                                                  eval(parse(text = x[2])), 
+                                                  x[3], 
+                                                  modelType = "randomForest", 
+                                                  importance = TRUE))
+#Train data on owc location with random forest
+result_owc_rf <- parApply(cl,reference_table,1, 
+                          function(x) choose_inputs(
+                                                  owc_all, 
+                                                  x[1], 
+                                                  eval(parse(text = x[2])), 
+                                                  x[3],
+                                                  modelType = "randomForest", 
+                                                  importance = TRUE))
+
+#END parrallel processing
+stopCluster(cl)
+```
+
+## Table of Metrics
+```{r plotMetrics}
+#Make a chart by chemical signature, predictors, RMSE, MAE and NSE
+sumTable <- data.frame()
+
+for(i in 1:nrow(reference_table)){
+  sumTable[i,c(1:14)] <- tibble(reference_table[i,c(1,2)]) %>% 
+            c(result_cbv_ranger[[i]][[4]][c(2, 4, 9),])  %>%
+            c(result_owc_ranger[[i]][[4]][c(2, 4, 9),]) %>% 
+            c(result_cbv_rf[[i]][[4]][c(2, 4, 9),])  %>%
+            c(result_owc_rf[[i]][[4]][c(2, 4, 9),]) %>% 
+            data.frame() %>% 
+            mutate(predictor = strsplit(predictor, "_")[[1]][1])
+}
+
+colnames(sumTable) <- c("Signal", "Predictor", "MAE", "RMSE", "NSE", "MAE", "RMSE", "NSE", "MAE", "RMSE", "NSE", "MAE", "RMSE", "NSE")
+kable(sumTable) %>%
+  add_header_above(c(" " = 2, "CBV" = 3, "OWC" = 3, "CBV" = 3, "OWC" = 3)) %>% 
+  add_header_above(c(" " = 2, "ranger" = 6, "randomForest" = 6)) %>% 
+  kable_classic() %>% 
+  column_spec(c(3:5, 9:11), 
+              background = "lightgrey")
+```
+
+
+## iRF 
+```{r iRF}
 
 ```
