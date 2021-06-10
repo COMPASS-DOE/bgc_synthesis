@@ -220,10 +220,10 @@ ggarrange(createSiteImportancePlots(group_importance_cbv_rf, "cbv"),
 #construct plot with cbv 
 hf_cbv_data_all <- preProcessData("data_NERR/output/cbv_hf_wq.csv")
 hf_data_cbv <- matchPredictions(result_cbv_rf, hf_cbv_data_all)
-cbv_pred_plot_nh4 <- ggplot(hf_data, aes(x=datetime_round, y = nh4))+geom_point()
-cbv_pred_plot_no3 <- ggplot(hf_data, aes(x=datetime_round, y = no3))+geom_point()
-cbv_pred_plot_po4 <- ggplot(hf_data, aes(x=datetime_round, y = po4))+geom_point()
-cbv_pred_plot_chla <- ggplot(hf_data, aes(x=datetime_round, y = chla))+geom_point()
+cbv_pred_plot_nh4 <- ggplot(hf_data_cbv, aes(x=datetime_round, y = nh4))+geom_point()
+cbv_pred_plot_no3 <- ggplot(hf_data_cbv, aes(x=datetime_round, y = no3))+geom_point()
+cbv_pred_plot_po4 <- ggplot(hf_data_cbv, aes(x=datetime_round, y = po4))+geom_point()
+cbv_pred_plot_chla <- ggplot(hf_data_cbv, aes(x=datetime_round, y = chla))+geom_point()
 
 
 
@@ -259,10 +259,8 @@ ggarrange(ggarrange(
           labels= c("nh4", "no3", "po4", "chla"))
 
 
-
-
-
-
+write_csv(hf_data_cbv, "data_NERR/output/cbv_hf_wq_predictions.csv")
+write_csv(hf_data_owc, "data_NERR/output/owc_hf_wq_predictions.csv")
 
 
 
