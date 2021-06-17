@@ -158,10 +158,9 @@ createImportancePlot <- function(importance, label){
 
 # Create model, and return useful things (data, plots, stats)
 choose_inputs <- function(all_data, dep, pred, label, importance, prop = 3/4, t = -1, modelType = "ranger", station = "") {
-  
   #Clean and filter data set
   dt_clean <- all_data %>% 
-    select(dep, pred) %>% 
+    select(all_of(dep), all_of(pred)) %>% 
     drop_na() %>% 
     rename(actual = dep)
   
@@ -194,6 +193,7 @@ choose_inputs <- function(all_data, dep, pred, label, importance, prop = 3/4, t 
     # fit on the training set and evaluate on test set
     last_fit(dt_split)
   
+  
   #7. Evaluate model performance
   test_predictions <- rf_fit %>% collect_predictions()
   all_metrics <- evaluateModel(rf_fit, test_predictions)
@@ -203,6 +203,14 @@ choose_inputs <- function(all_data, dep, pred, label, importance, prop = 3/4, t 
   
   #9. Build Final Model
   final_model <- fit(rf_workflow, dt_clean)
+  
+  
+  explainer_rf<- explain_tidymodels(
+    final_model, 
+    data = dplyr::select(dt_clean, -actual), 
+    y = dt_clean$actual, 
+    label = "random forest"
+  )
   
   #10. Build importance plots
   importance <- grabTheImportance(final_model, modelType)
@@ -215,13 +223,15 @@ choose_inputs <- function(all_data, dep, pred, label, importance, prop = 3/4, t 
                      rf_fit, 
                      all_metrics, 
                      correlations, 
-                     importancePlot)
+                     importancePlot, 
+                     explainer_rf)
   
   names(Fig_result) <- c("plot", 
                          "finalModel", 
                          "trainTestModel", 
                          "metrics", 
                          "correlations", 
-                         "importancePlot")
+                         "importancePlot", 
+                         "finalModelDT")
   return(Fig_result)
 }

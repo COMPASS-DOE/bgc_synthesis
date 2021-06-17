@@ -37,6 +37,47 @@ grabAllImportance <- function(r, t){
   return(perImpAll)
 }
 
+
+#by signature
+createImpPlot <- function(x, y, label){
+  temp <- x[[3]][which(x[[3]]$group == y),]
+  colRef <- x[[3]][which(x[[3]]$group == y),]
+  temp$metric <- factor(temp$metric, levels = temp$metric[order(temp$values)])
+  
+  tempG <- ggplot(temp, aes(x = metric, y = values, fill = colRef$metric))+
+    geom_bar(position="dodge", stat="identity")+
+    coord_flip()+
+    theme(axis.title.x=element_blank(),
+          axis.title.y=element_blank(), 
+          panel.background = element_rect(fill = "white",
+                                          colour = "white"), 
+          axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+    theme(legend.position = "none")
+  
+  title.grob <- textGrob(
+    label = paste(label, temp$group[1]),
+    x = unit(0, "lines"), 
+    y = unit(0, "lines"),
+    hjust = 0, vjust = 0,
+    gp = gpar(fontsize = 16))
+  
+  p1 <- arrangeGrob(tempG, top = title.grob)
+  return(p1)
+}
+
+
+
+#by Site
+createSiteImportancePlots <- function(x, label){
+  chla <- createImpPlot(x, "chla", label)
+  nh4 <- createImpPlot(x, "nh4", label)
+  no3 <- createImpPlot(x, "no3", label)
+  po4 <- createImpPlot(x, "po4", label)
+  figure <- ggarrange(nh4, no3, po4, chla, ncol = 4, nrow = 1)
+  annotate_figure(figure, left = text_grob("Predictor", color = "black", rot = 90), 
+                  bottom = "Importance")
+}
+
 clusterChart <- function(importance_result, deps, ref_table = reference_table){
   nums <- vector()
   nums <- which(ref_table$predictor == deps)
@@ -74,14 +115,13 @@ matchPredictions <- function(x, y){
   
   #split data into date, predictors, and no nas
   predData <- y %>% 
-    na.omit() %>% 
-    select(-last_col())
+    na.omit() 
   
-  #Find predictions fo four ssignatures
-  nh4 <- predict(x[[3]]$finalModel, predData)
-  po4 <- predict(x[[6]]$finalModel, predData)
-  no3 <- predict(x[[9]]$finalModel, predData)
-  chla <- predict(x[[12]]$finalModel, predData)
+  #Find predictions fo four signatures
+  nh4 <- predict(x[[2]]$finalModel, predData)
+  po4 <- predict(x[[5]]$finalModel, predData)
+  no3 <- predict(x[[8]]$finalModel, predData)
+  chla <- predict(x[[11]]$finalModel, predData)
   
   
   #Combine predictions with date into one date frame
@@ -97,7 +137,7 @@ matchPredictions <- function(x, y){
 }
 
 
-preProcessData <- function(x){
+preProcessData <- function(x, pred){
   
   #Preprocess high frequency dataset for predicitions to be added
   processed_data <- read_csv(x)%>% 
@@ -118,7 +158,92 @@ preProcessData <- function(x){
            Wdir.mean= Wdir, 
            TotPAR.mean = TotPAR, 
            TotPrcp.mean.5 = TotPrcp) %>% 
-    relocate(all_predictors)
+    relocate(all_predictors) %>% 
+    select(pred, "datetime_round")
   
   return(processed_data)
+}
+
+
+
+
+formPDP <- function(pdp, lab){
+  TempNH4 <- as_tibble(pdp[[2]])  %>% 
+    mutate(`_label_` = stringr::str_remove(`_label_`, "random forest_")) %>%
+    ggplot(aes(`_x_`, `_yhat_`)) +
+    geom_line(size = 1.2, alpha = 0.8, color = "#6dcad8") +
+    labs(x = "Temp", 
+         y = lab)+
+    geom_rug(sides = "b", color = "#6dcad8")+
+    theme(legend.position = "none", 
+          panel.background = element_rect(fill = "white"))
+  spCondNH4 <- as_tibble(pdp[[5]]) %>%
+    mutate(`_label_` = stringr::str_remove(`_label_`, "random forest_")) %>%
+    ggplot(aes(`_x_`, `_yhat_`, color = "#6dcad8")) +
+    geom_line(size = 1.2, alpha = 0.8, color = "#6dcad8") +
+    labs(x = "spCond", 
+         y = lab)+
+    geom_rug(sides = "b", color = "#6dcad8")+
+    theme(legend.position = "none", 
+          panel.background = element_rect(fill = "white"))
+  DO_mglNH4 <- as_tibble(pdp[[8]]) %>%
+    mutate(`_label_` = stringr::str_remove(`_label_`, "random forest_")) %>%
+    ggplot(aes(`_x_`, `_yhat_`, color = "#6dcad8")) +
+    geom_line(size = 1.2, alpha = 0.8, color = "#6dcad8") +
+    labs(x = "DO_mgl", 
+         y = lab)+
+    geom_rug(sides = "b", color = "#6dcad8")+
+    theme(legend.position = "none", 
+          panel.background = element_rect(fill = "white"))
+  DepthNH4 <- as_tibble(pdp[[11]]) %>%
+    mutate(`_label_` = stringr::str_remove(`_label_`, "random forest_")) %>%
+    ggplot(aes(`_x_`, `_yhat_`, color = "#6dcad8")) +
+    geom_line(size = 1.2, alpha = 0.8, color = "#6dcad8") +
+    labs(x = "Depth", 
+         y = lab)+
+    geom_rug(sides = "b", color = "#6dcad8")+
+    theme(legend.position = "none", 
+          panel.background = element_rect(fill = "white"))
+  pHNH4 <- as_tibble(pdp[[14]]) %>%
+    mutate(`_label_` = stringr::str_remove(`_label_`, "random forest_")) %>%
+    ggplot(aes(`_x_`, `_yhat_`, color = "#6dcad8")) +
+    geom_line(size = 1.2, alpha = 0.8, color = "#6dcad8") +
+    labs(x = "pH", 
+         y = lab)+
+    geom_rug(sides = "b", color = "#6dcad8")+
+    theme(legend.position = "none", 
+          panel.background = element_rect(fill = "white"))
+  TurbNH4 <- as_tibble(pdp[[17]]) %>%
+    mutate(`_label_` = stringr::str_remove(`_label_`, "random forest_")) %>%
+    ggplot(aes(`_x_`, `_yhat_`, color = "#6dcad8")) +
+    geom_line(size = 1.2, alpha = 0.8, color = "#6dcad8") +
+    labs(x = "Turb", 
+         y = lab)+
+    geom_rug(sides = "b", color = "#6dcad8")+
+    theme(legend.position = "none", 
+          panel.background = element_rect(fill = "white"))
+  q_cfsNH4 <- as_tibble(pdp[[20]]) %>%
+    mutate(`_label_` = stringr::str_remove(`_label_`, "random forest_")) %>%
+    ggplot(aes(`_x_`, `_yhat_`, color = "#6dcad8")) +
+    geom_line(size = 1.2, alpha = 0.8, color = "#6dcad8") +
+    labs(x = "q_cfs", 
+         y = lab)+
+    geom_rug(sides = "b", color = "#6dcad8")+
+    theme(legend.position = "none", 
+          panel.background = element_rect(fill = "white"))
+  sin_doyNH4 <- as_tibble(pdp[[23]]) %>%
+    mutate(`_label_` = stringr::str_remove(`_label_`, "random forest_")) %>%
+    ggplot(aes(`_x_`, `_yhat_`, color = "#6dcad8")) +
+    geom_line(size = 1.2, alpha = 0.8, color = "#6dcad8") +
+    labs(x = "sin_doy", 
+         y = lab) +
+    geom_rug(sides = "b", color = "#6dcad8")+
+    theme(legend.position = "none", 
+          panel.background = element_rect(fill = "white"))
+  
+  pdp_all <- ggarrange(TempNH4, spCondNH4, DO_mglNH4, DepthNH4, pHNH4, TurbNH4, q_cfsNH4, sin_doyNH4, ncol = 2, nrow = 4)
+  
+  
+  return(pdp_all)
+  
 }
