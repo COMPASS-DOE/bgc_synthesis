@@ -1,0 +1,385 @@
+---
+title: "Using machine learning to understand the drivers of nutrients in constrasting coastal ecosystems"
+author: "Matt Duggan"
+date: "`r Sys.Date()`"
+output: 
+  pdf_document:
+    extra_dependencies: ["flafter"]
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, out.extra = "")
+
+# Load packages
+require(pacman)
+p_load(tidyverse, ggplot2, cowplot, lubridate, tidymodels,splitTools, ggthemes, parallel, ggpubr, hydroGOF, kableExtra, grid, gridExtra, DALEXtra)
+
+#Load in necessary functions for training model
+source("Functions/train_Rforest_functions.R")
+
+#Load in necessary functions for testing model
+source("Functions/plot_Model_Functions.R")
+
+#Load in necessary constants
+source("Constants/initial_model_constants.R")
+```
+
+# Introduction
+
+We are interested in understanding and identifying the most important variables that affect 
+bigeochemical signals in water chemistry within estuaries, arguably the most 
+valuable bodies of water for directly and indirectly maintaining every ecosystem 
+on Earth. In order to evaluate these variables that act as predictors for these 
+signals, we are constructing random forests to predict variable importance for 
+four significant bio signatures: ammonium (NH4), phosphate (PO4), nitrate (NO3), 
+and Chlorophyll A (chla). Functions for the script can be found in the 
+Functions/train_Rforest_functions.R scipt and constants, such as predictors are 
+in the Constants/train_model_constants.R script. 
+
+## Training
+
+### Data Preperation
+
+We use approximately 20 years of data collected by the National Estuaries
+Research Reserve (NERR).The data is saved across years and for each 
+station: 
+
+1. Old Women Creek (tributary to Lake Erie)
+2. York River Estuary (tributary to Chesapeake Bay)
+
+Therefore for each station, the data must be combined while taking into consideration
+the removal of outliers and missing data. As a forewarning, for the entirety of the script 
+we try to stay consistent with the tidyverse syntax and conventions, so we highly suggest
+reading the tidyverse/tidymodels documentation before continuing deeper in the script. 
+
+```{r prepData, message=FALSE, tidy=TRUE}
+
+#prepare data from cbv
+cbv_all <- read_station("./data_NERR/output/cbv_for_models.csv") %>% 
+  filter(is.na(no3) | no3 < 1, 
+         is.na(po4) | po4 < 0.15, 
+         is.na(chla) | chla < 200)
+
+#prepare data from owc
+owc_all <- read_station("./data_NERR/output/owc_for_models.csv") %>% 
+  filter(is.na(no3) | no3 < 8, 
+         is.na(po4) | po4 < 0.1)
+
+```
+
+### Train Model Preperation
+
+Since we are experimenting with different predictors, the best way to run 
+training is to run them in parallel. This is the standard process for 
+setting up the ports and running them in a cluster. Refer to the parallel
+package in base R for more details. 
+```{r setupParallelFake, eval=FALSE}
+ #Create an apply function for parrallel computing
+ numCores <- detectCores()-1
+ 
+ #START cluster
+ cl <- makeCluster(numCores, outfile ='')
+ 
+ #export required constants
+ clusterExport(cl, 
+               c("cbv_all", 
+               "owc_all"))
+ 
+ #Export necessary libraries
+ clusterEvalQ(cl, {
+   library(ggplot2)
+   library(tidyverse)
+   library(tidymodels)
+   library(tidyverse)
+   library(lubridate)
+   library(ggthemes)
+   library(hydroGOF)
+   library(DALEXtra)
+   source("Functions/train_Rforest_functions.R")
+   source("Constants/initial_model_constants.R")
+ })
+```
+
+```{r setupParallel, message = FALSE, warning = FALSE, include=FALSE}
+
+#Create an apply function for parrallel computing
+numCores <- detectCores()-1
+
+#START cluster
+cl <- makeCluster(numCores, outfile ='')
+
+#export required constants
+clusterExport(cl, 
+              c("cbv_all", 
+              "owc_all"))
+
+#Export necessary libraries
+clusterEvalQ(cl, {
+  library(ggplot2)
+  library(tidyverse)
+  library(tidymodels)
+  library(tidyverse)
+  library(lubridate)
+  library(ggthemes)
+  library(hydroGOF)
+  library(DALEXtra)
+  source("Functions/train_Rforest_functions.R")
+  source("Constants/initial_model_constants.R")
+})
+```
+
+### Reference Table
+
+The reference table acts as a source for setup of project. For each run, we 
+defined a row for the random forest model training that included:
+
+1. Chemical Signal
+    + ammonia (NH4)
+    + nitrate (NO3)
+    + phosphate (PO4)
+    + chlorophyll a (CHLA)
+2. Predictors
+    + water quality (wq_predictors)
+    + meteorology (met_predictors)
+    + all (all_predictors)
+
+As a side note: highly suggest to include the station and model as new columns 
+and refer them here. 
+
+```{r setupReferenceTable, echo=FALSE}
+
+
+reference_table <- tibble(dep = character(), predictor = character()) %>% 
+  add_row(dep = rep("nh4",3), predictor = c("met_predictors", 
+                                            "wq_predictors", 
+                                            "all_predictors")) %>% 
+  add_row(dep = rep("po4",3), predictor = c("met_predictors", 
+                                            "wq_predictors", 
+                                            "all_predictors")) %>% 
+  add_row(dep = rep("no3",3), predictor = c("met_predictors", 
+                                            "wq_predictors", 
+                                            "all_predictors")) %>% 
+  add_row(dep = rep("chla",3), predictor = c("met_predictors", 
+                                             "wq_predictors", 
+                                             "all_predictors")) %>% 
+  add_column(paste0(.$dep, "-", .$predictor)) %>% 
+  rename(name = 3)
+
+kable(reference_table) %>% 
+  kable_styling(bootstrap_options = "striped", full_width = F)
+
+```
+
+### Train Random Forest
+
+We ran two model architectures available in two different R packages: 
+
+1. randomForest
+2. ranger
+
+Each model was created with the three aformentioned predictor groups: <br/>
+
+Therefore, we will have 2(model types) x 3(predictor groups) x 4(signatures) separate
+random forest models to compare. mtry (number of predictors randomly sampled 
+for each branching) is cross validated for optimization of the 
+forest for each group. The number of trees (ntrees) will continuosly increase the 
+accuracy of the model, however, at the cost of computation resources. Therefore, 
+we chose to stick with 1000 trees. Reference the train_Rforest_functions.R scripts 
+for more information on training. The training was mainly conducted in the conventions 
+of the tidymodels R package. 
+
+```{r trainModels, eval=FALSE}
+
+#Train data on cbv location with ranger
+result_cbv_ranger <- parApply(cl,reference_table,1, 
+                              function(x) choose_inputs(
+                                                      cbv_all, 
+                                                      x[1], 
+                                                      eval(parse(text = x[2])), 
+                                                      x[3],
+                                                      modelType = "ranger",
+                                                      importance = "impurity"))
+#Train data on owc location with ranger
+result_owc_ranger <- parApply(cl,reference_table,1, 
+                              function(x) choose_inputs(
+                                                      owc_all, 
+                                                      x[1], 
+                                                      eval(parse(text = x[2])), 
+                                                      x[3],
+                                                      modelType = "ranger",
+                                                      importance = "impurity"))
+#Train data on cbv location with random forest
+result_cbv_rf <- parApply(cl,reference_table,1, 
+                          function(x) choose_inputs(
+                                                  cbv_all, 
+                                                  x[1], 
+                                                  eval(parse(text = x[2])), 
+                                                  x[3], 
+                                                  modelType = "randomForest", 
+                                                  importance = TRUE))
+#Train data on owc location with random forest
+result_owc_rf <- parApply(cl,reference_table,1, 
+                          function(x) choose_inputs(
+                                                  owc_all, 
+                                                  x[1], 
+                                                  eval(parse(text = x[2])), 
+                                                  x[3],
+                                                  modelType = "randomForest", 
+                                                  importance = TRUE))
+
+#END parrallel processing
+stopCluster(cl)
+```
+
+```{r trainModelsFake, message = FALSE, warning = FALSE, include=FALSE}
+
+#Train data on cbv location with ranger
+result_cbv_ranger <- parApply(cl,reference_table,1, 
+                              function(x) choose_inputs(
+                                                      cbv_all, 
+                                                      x[1], 
+                                                      eval(parse(text = x[2])), 
+                                                      x[3],
+                                                      modelType = "ranger",
+                                                      importance = "impurity"))
+#Train data on owc location with ranger
+result_owc_ranger <- parApply(cl,reference_table,1, 
+                              function(x) choose_inputs(
+                                                      owc_all, 
+                                                      x[1], 
+                                                      eval(parse(text = x[2])), 
+                                                      x[3],
+                                                      modelType = "ranger",
+                                                      importance = "impurity"))
+#Train data on cbv location with random forest
+result_cbv_rf <- parApply(cl,reference_table,1, 
+                          function(x) choose_inputs(
+                                                  cbv_all, 
+                                                  x[1], 
+                                                  eval(parse(text = x[2])), 
+                                                  x[3], 
+                                                  modelType = "randomForest", 
+                                                  importance = TRUE))
+#Train data on owc location with random forest
+result_owc_rf <- parApply(cl,reference_table,1, 
+                          function(x) choose_inputs(
+                                                  owc_all, 
+                                                  x[1], 
+                                                  eval(parse(text = x[2])), 
+                                                  x[3],
+                                                  modelType = "randomForest", 
+                                                  importance = TRUE))
+
+#END parrallel processing
+stopCluster(cl)
+```
+# Evaluate 
+
+## Table of Metrics
+
+The table of metrics (Table 1) demonstrates the performance of the regression models between the two random forest packages. Across the two sites, randomForest outperforms ranger and, therefore, we chose to continue with randomForest in the rest of our predictions. 
+
+```{r plotMetrics, echo = FALSE}
+#Make a chart by chemical signature, predictors, RMSE, MAE and NSE
+sumTable <- data.frame()
+
+for(i in 1:nrow(reference_table)){
+  sumTable[i,c(1:14)] <- tibble(reference_table[i,c(1,2)]) %>% 
+            c(result_cbv_ranger[[i]][[4]][c(2, 4, 9),], 
+              result_owc_ranger[[i]][[4]][c(2, 4, 9),], 
+              result_cbv_rf[[i]][[4]][c(2, 4, 9),], 
+              result_owc_rf[[i]][[4]][c(2, 4, 9),])  %>%
+            data.frame() %>% 
+            mutate(predictor = strsplit(predictor, "_")[[1]][1])
+}
+
+colnames(sumTable) <- c("Signal", "Predictor", "MAE", "RMSE", "NSE", "MAE", "RMSE", "NSE", "MAE", "RMSE", "NSE", "MAE", "RMSE", "NSE")
+kable(sumTable, caption="Table 1. Metrics of mean average error (MAE), root mean square error (RMSE), and Nash-Sutcliffe model efficiency coefficient (NSE). Across the two locations of Cheasepeak Bay (cbv) and Old Woman Creek (owc) and the different signatures of ammonia, nitrate, phosphate, and chlorophyll a, the randomForest package out-performs ranger.") %>%
+  add_header_above(c(" " = 2, "CBV" = 3, "OWC" = 3, "CBV" = 3, "OWC" = 3)) %>% 
+  add_header_above(c(" " = 2, "ranger" = 6, "randomForest" = 6)) %>% 
+  kable_classic() %>% 
+  column_spec(c(3:5, 9:11), 
+              background = "#d3d3d3")
+```
+
+
+## Impotance Plots
+In figure 1, you can see the variable importance based on the Gini impurity. The Gini impurity is an accumulation of the predictor to split to continue on it the decision tree. 
+
+```{r iRF, echo = FALSE, fig.height = 6, fig.width = 6.5}
+
+#plot importance
+importance_cbv_ranger <- grabAllImportance(result_cbv_ranger, "ranger")
+importance_owc_ranger <- grabAllImportance(result_owc_ranger, "ranger")
+importance_cbv_rf <- grabAllImportance(result_cbv_rf, "randomForest")
+importance_owc_rf <- grabAllImportance(result_owc_rf, "randomForest")
+
+#group importance by predictors
+group_importance_cbv_ranger <- clusterChartModel(importance_cbv_ranger, reference_table)
+group_importance_owc_ranger <- clusterChartModel(importance_owc_ranger, reference_table)
+group_importance_cbv_rf <- clusterChartModel(importance_cbv_rf, reference_table)
+group_importance_owc_rf <- clusterChartModel(importance_owc_rf, reference_table)
+
+
+#Create importance plots of predictors for owc and cbv of the best architecture:
+#randomForest
+figure <- ggarrange(createSiteImportancePlots(group_importance_cbv_rf, "cbv"),
+          createSiteImportancePlots(group_importance_owc_rf, "owc"), nrow = 2, ncol=1)
+
+annotate_figure(figure)
+```
+## Partial Dependency Plots
+
+These are the partial dependency plots for each of the predictors in water quality for both locations. 
+
+![Partial Dependency Plots based on Water Quality Predictors (CBV & OWC)]("Figs/pdp.png")
+
+
+## High Frequency Data Predictions
+These are the predictions based on the high frequency data. Because of 1) the minor differences in the performance of the model from differences in predictors (Table 1) and 2) the high frequency data was missing a large amount of data for meteorological predictors, most likely due to a down weather station for several years, we chose to predict the chemical signatures with water quality predictors alone with the randomForest architecture.  
+
+```{r HighFreqDataPred, include=FALSE, eval = FALSE}
+#construct plot with cbv 
+hf_cbv_data_all <- preProcessData("data_NERR/output/cbv_hf_wq.csv", c(wq_predictors, "datetime_round"))
+hf_data_cbv <- matchPredictions(result_cbv_rf, hf_cbv_data_all)
+cbv_pred_plot_nh4 <- ggplot(hf_data_cbv, aes(x=datetime_round, y = nh4))+geom_point()
+cbv_pred_plot_no3 <- ggplot(hf_data_cbv, aes(x=datetime_round, y = no3))+geom_point()
+cbv_pred_plot_po4 <- ggplot(hf_data_cbv, aes(x=datetime_round, y = po4))+geom_point()
+cbv_pred_plot_chla <- ggplot(hf_data_cbv, aes(x=datetime_round, y = chla))+geom_point()
+
+
+
+#construct plot with owc
+hf_owc_data_all <- preProcessData("data_NERR/output/owc_hf_wq.csv", c(wq_predictors, "datetime_round"))
+hf_data_owc <- matchPredictions(result_owc_rf, hf_owc_data_all)
+owc_pred_plot_nh4 <- ggplot(hf_data_owc, aes(x=datetime_round, y = nh4))+geom_point()
+owc_pred_plot_no3<- ggplot(hf_data_owc, aes(x=datetime_round, y = no3))+geom_point()
+owc_pred_plot_po4 <- ggplot(hf_data_owc, aes(x=datetime_round, y = po4))+geom_point()
+owc_pred_plot_chla <- ggplot(hf_data_owc, aes(x=datetime_round, y = chla))+geom_point()
+
+ggarrange(ggarrange(
+            cbv_pred_plot_nh4, 
+            owc_pred_plot_nh4,
+            ncol = 1),
+          ggarrange(
+            cbv_pred_plot_no3, 
+            owc_pred_plot_no3,
+            ncol = 1),
+          ggarrange(
+            cbv_pred_plot_po4, 
+            owc_pred_plot_po4,
+            ncol = 1),
+          ggarrange(
+            cbv_pred_plot_chla, 
+            owc_pred_plot_chla,
+            ncol = 1),
+          ncol = 1)
+
+```
+![High Frequency prediction data based on water quality predictors]("Figs/HF_wqPredictions.png")
+
+![Average of each signature every hour through the day]("Figs/PatternsByHour.png")
+
+![Average of each signature each month at CBV]("Figs/PatternsByMonthCBV.png")
+
+![Average of each signature each month at OWC]("Figs/PatternsByMonthOWC.png")

@@ -69,8 +69,8 @@ source("./Functions/prep_data_functions.R")
 tic("run script") #measure how long the script takes
 
 # Read in pre-processed nutrients
-cbv_nuts_raw <- read_dir(paste0(cbv_directory, "/nutrients"))
-owc_nuts_raw <- read_dir(paste0(owc_directory, "/nutrients"))
+cbv_nuts_raw <- suppressWarnings(read_dir(paste0(cbv_directory, "/nutrients")))
+owc_nuts_raw <- suppressWarnings(read_dir(paste0(owc_directory, "/nutrients")))
 
 cbv_nuts <- process_nuts(cbv_nuts_raw, bin_rate = bin_rate)
 owc_nuts <- process_nuts(owc_nuts_raw, bin_rate = bin_rate)
@@ -81,17 +81,17 @@ toc()
 
 # Read in water quality, then format
 tic("prep wq data")
-cbv_wq_raw <- read_dir(paste0(cbv_directory, "/water_quality"))
+cbv_wq_raw <- suppressWarnings(read_dir(paste0(cbv_directory, "/water_quality")))
 cbv_wq <- prep_wq(cbv_wq_raw) %>% bin_wq()
-owc_wq_raw <- read_dir(paste0(owc_directory, "/water_quality"))
+owc_wq_raw <- suppressWarnings(read_dir(paste0(owc_directory, "/water_quality")))
 owc_wq <- prep_wq(owc_wq_raw) %>% bin_wq()
 toc()
 
 # read in meteorology, then format
 tic("prep met data")
-cbv_met_raw <- read_dir(paste0(cbv_directory, "/meteorology"))
+cbv_met_raw <- suppressWarnings(read_dir(paste0(cbv_directory, "/meteorology")))
 cbv_met <- prep_met(cbv_met_raw) %>% bin_met()
-owc_met_raw <- read_dir(paste0(owc_directory, "/meteorology"))
+owc_met_raw <- suppressWarnings(read_dir(paste0(owc_directory, "/meteorology")))
 owc_met <- prep_met(owc_met_raw) %>% bin_met()
 toc()
 

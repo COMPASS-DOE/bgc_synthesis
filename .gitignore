@@ -1,7 +1,9 @@
 .Rproj.user
 .Rhistory
-.RData
+.RData*
 .Ruserdata
 Rplot.pdf
 bgc_synthesis.Rproj
 data_NERR/
+data_NERR/output/cbv_hf_wq_predictions.csv
+data_NERR/output/owc_hf_wq_predictions.csv
