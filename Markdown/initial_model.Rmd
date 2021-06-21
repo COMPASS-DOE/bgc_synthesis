@@ -5,6 +5,7 @@ date: "`r Sys.Date()`"
 output: 
   pdf_document:
     extra_dependencies: ["flafter"]
+  always_allow_html: true
 ---
 
 ```{r setup, include=FALSE}
@@ -12,7 +13,7 @@ knitr::opts_chunk$set(echo = TRUE, out.extra = "")
 
 # Load packages
 require(pacman)
-p_load(tidyverse, ggplot2, cowplot, lubridate, tidymodels,splitTools, ggthemes, parallel, ggpubr, hydroGOF, kableExtra, grid, gridExtra, DALEXtra)
+p_load(tidyverse, ggplot2, cowplot, lubridate, tidymodels,splitTools, ggthemes, parallel, ggpubr, hydroGOF, kableExtra, grid, gridExtra, DALEXtra, mapview, sf, ggmap)
 
 #Load in necessary functions for training model
 source("Functions/train_Rforest_functions.R")
@@ -26,15 +27,7 @@ source("Constants/initial_model_constants.R")
 
 # Introduction
 
-We are interested in understanding and identifying the most important variables that affect 
-bigeochemical signals in water chemistry within estuaries, arguably the most 
-valuable bodies of water for directly and indirectly maintaining every ecosystem 
-on Earth. In order to evaluate these variables that act as predictors for these 
-signals, we are constructing random forests to predict variable importance for 
-four significant bio signatures: ammonium (NH4), phosphate (PO4), nitrate (NO3), 
-and Chlorophyll A (chla). Functions for the script can be found in the 
-Functions/train_Rforest_functions.R scipt and constants, such as predictors are 
-in the Constants/train_model_constants.R script. 
+We are interested in understanding and identifying the most important variables that affect bigeochemical signals in water chemistry within estuaries, arguably the most valuable bodies of water for directly and indirectly maintaining every ecosystem on Earth. In order to evaluate these variables that act as predictors for these signals, we are constructing random forests to predict variable importance for four significant bio signatures: ammonia (NH4), phosphate (PO4), nitrate (NO3), and Chlorophyll A (chla). Functions for the script can be found in the Functions/train_Rforest_functions.R script and constants, such as predictors are in the Constants/train_model_constants.R script. 
 
 ## Training
 
@@ -45,12 +38,59 @@ Research Reserve (NERR).The data is saved across years and for each
 station: 
 
 1. Old Women Creek (tributary to Lake Erie)
+
+   + A freshwater estuary located on the edge of Lake Erie. The estuary does not have any salt, however, the lake water and runoff that drains from the the surrounding area mixes together to form a third significantly different body of water. Lake Erie being the shallowest and running in a East to West position is prone to a weather phenomenon known as seiches. This is from the East to West movement of wind that pushes water up to one side of the lake, sometimes causing several feet of water displacement. In theory this causes drastic mixing and how that plays a role in estuaries like Old Woman Creek is still in need of investigation. 
+
 2. York River Estuary (tributary to Chesapeake Bay)
 
-Therefore for each station, the data must be combined while taking into consideration
-the removal of outliers and missing data. As a forewarning, for the entirety of the script 
-we try to stay consistent with the tidyverse syntax and conventions, so we highly suggest
-reading the tidyverse/tidymodels documentation before continuing deeper in the script. 
+   + A brackish water river that is mainly controlled by tidal fluxes from Chesapeake Bay. The daily tides and runoff forms the varying nutrient levels throughout the river. In recent years, the northeast of the United States has seen a drastic change in the amount of hurricanes in the region. Because of this increase in storm activity, in theory we would see a significant change in water composition due to storm surges and flooding. Our question is how do these storm events compare in evaluating the changing water composition and are there any differences in how salt water and fresh water ecosystems handle this drastic change.  
+
+![Old Women Creek and York River site descriptions]("Figs/sites.JPG")
+
+```{r locations, message=FALSE, tidy=TRUE, include =FALSE, eval = FALSE}
+###Map of York Town River
+####################################
+
+cbv <- read_sf(here::here("water_stations/GE_cbv_ST/cbv.kml")) %>% 
+  mutate(lat = unlist(map(geometry,1)),
+           long = unlist(map(geometry,2)))
+
+#Define map area
+uscbv <- c(left = -77, bottom = 37.1, right = -76.25, top = 37.7)
+
+#Create a stamen map
+cbv_map<- get_stamenmap(uscbv, zoom = 14, maptype = "terrain") %>% ggmap() +geom_point(data=cbv, aes(x=lat, y=long), color = "red")+
+  theme(axis.text.x = element_text(angle = 90))
+
+cbv_bb <- st_as_sfc(st_bbox(cbv))
+
+ggcbv = ggplot() + 
+  geom_sf(data = us_states_2163, fill = "white")+ 
+  geom_sf(data = cbv_bb, fill = NA, color = "red", size = 1.2)+
+  theme_void()
+
+####Map of Old Woman Creek
+####################################
+owc <- read_sf(here::here("water_stations/GE_owc_ST/owc.kml")) %>% 
+  mutate(lat = unlist(map(geometry,1)),
+           long = unlist(map(geometry,2)))
+
+#Define map area for owc
+usowc <- c(left = -82.52, bottom = 41.345, right = -82.5, top = 41.39)
+
+#Create a stamen map
+owc_map<-get_stamenmap(usowc, zoom = 14, maptype = "terrain") %>% ggmap() +geom_point(data=owc, aes(x=lat, y=long), color = "red")+
+  theme(axis.text.x = element_text(angle = 90))
+
+owc_bb <- st_as_sfc(st_bbox(owc))
+
+ggowc = ggplot() + 
+  geom_sf(data = us_states_2163, fill = "white")+ 
+  geom_sf(data = owc_bb, fill = NA, color = "red", size = 4)+
+  theme_void()
+```
+
+Therefore for each station, the data must be combined while taking into consideration the removal of outliers and missing data. As a forewarning, for the entirety of the script we try to stay consistent with the tidyverse syntax and conventions, so we highly suggest reading the tidyverse/tidymodels documentation before continuing deeper in the script. 
 
 ```{r prepData, message=FALSE, tidy=TRUE}
 
@@ -69,10 +109,7 @@ owc_all <- read_station("./data_NERR/output/owc_for_models.csv") %>%
 
 ### Train Model Preperation
 
-Since we are experimenting with different predictors, the best way to run 
-training is to run them in parallel. This is the standard process for 
-setting up the ports and running them in a cluster. Refer to the parallel
-package in base R for more details. 
+Since we are experimenting with different predictors, the best way to run training is to run them in parallel. This is the standard process for setting up the ports and running them in a cluster. Refer to the parallel package in base R for more details. 
 ```{r setupParallelFake, eval=FALSE}
  #Create an apply function for parrallel computing
  numCores <- detectCores()-1
@@ -130,8 +167,7 @@ clusterEvalQ(cl, {
 
 ### Reference Table
 
-The reference table acts as a source for setup of project. For each run, we 
-defined a row for the random forest model training that included:
+The reference table acts as a source for setup of project. For each run, we defined a row for the random forest model training that included:
 
 1. Chemical Signal
     + ammonia (NH4)
@@ -179,14 +215,7 @@ We ran two model architectures available in two different R packages:
 
 Each model was created with the three aformentioned predictor groups: <br/>
 
-Therefore, we will have 2(model types) x 3(predictor groups) x 4(signatures) separate
-random forest models to compare. mtry (number of predictors randomly sampled 
-for each branching) is cross validated for optimization of the 
-forest for each group. The number of trees (ntrees) will continuosly increase the 
-accuracy of the model, however, at the cost of computation resources. Therefore, 
-we chose to stick with 1000 trees. Reference the train_Rforest_functions.R scripts 
-for more information on training. The training was mainly conducted in the conventions 
-of the tidymodels R package. 
+Therefore, we will have 2(model types) x 3(predictor groups) x 4(signatures) separate random forest models to compare. mtry (number of predictors randomly sampled for each branching) is cross validated for optimization of the forest for each group. The number of trees (ntrees) will continuosly increase the accuracy of the model, however, at the cost of computation resources. Therefore, we chose to stick with 1000 trees. Reference the train_Rforest_functions.R scripts for more information on training. The training was mainly conducted in the conventions of the tidymodels R package. 
 
 ```{r trainModels, eval=FALSE}
 
@@ -198,7 +227,8 @@ result_cbv_ranger <- parApply(cl,reference_table,1,
                                                       eval(parse(text = x[2])), 
                                                       x[3],
                                                       modelType = "ranger",
-                                                      importance = "impurity"))
+                                                      importance = "impurity", 
+                                                      prop = 8/10))
 #Train data on owc location with ranger
 result_owc_ranger <- parApply(cl,reference_table,1, 
                               function(x) choose_inputs(
@@ -207,7 +237,8 @@ result_owc_ranger <- parApply(cl,reference_table,1,
                                                       eval(parse(text = x[2])), 
                                                       x[3],
                                                       modelType = "ranger",
-                                                      importance = "impurity"))
+                                                      importance = "impurity", 
+                                                      prop = 8/10))
 #Train data on cbv location with random forest
 result_cbv_rf <- parApply(cl,reference_table,1, 
                           function(x) choose_inputs(
@@ -216,7 +247,8 @@ result_cbv_rf <- parApply(cl,reference_table,1,
                                                   eval(parse(text = x[2])), 
                                                   x[3], 
                                                   modelType = "randomForest", 
-                                                  importance = TRUE))
+                                                  importance = TRUE, 
+                                                  prop = 8/10))
 #Train data on owc location with random forest
 result_owc_rf <- parApply(cl,reference_table,1, 
                           function(x) choose_inputs(
@@ -225,7 +257,8 @@ result_owc_rf <- parApply(cl,reference_table,1,
                                                   eval(parse(text = x[2])), 
                                                   x[3],
                                                   modelType = "randomForest", 
-                                                  importance = TRUE))
+                                                  importance = TRUE, 
+                                                  prop = 8/10))
 
 #END parrallel processing
 stopCluster(cl)
