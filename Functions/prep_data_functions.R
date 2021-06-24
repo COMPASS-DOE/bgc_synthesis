@@ -24,19 +24,10 @@
 ##### FUNCTIONS
 ##################################################
 
-# OLD: Read in csvs and bind to a single dataframe by common substring
-read_data <- function(directory, type) {
-  file_list <- list.files(directory, pattern="csv", full.names=T) %>%
-    subset(str_detect(., type)==TRUE) %>% as.list()
-  df_list <- lapply(file_list, read_csv)
-  df <- do.call("rbind", df_list)
-  return(df)
-}
-
 #NEW: Read in csv by folder
 read_dir <- function(directory) {
-  file_list <- list.files(directory, pattern="csv", full.names=T) %>% 
-    map(read_csv)
+  file_list <- suppressWarnings(list.files(directory, pattern="csv", full.names=T) %>% 
+    map(read_csv))
   df <- do.call("rbind", file_list)
   return(df)
 }
