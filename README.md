@@ -9,8 +9,11 @@
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;This repository houses data downloaded from NOAA's National Estuarine Research Reserve database (http://cdmo.baruch.sc.edu/), and scripts for importing, cleaning, processing, and analyzing data for nutrients, water quality, and climate collected at Old Woman Creek (a tributary to Lake Erie) and the York River estuary (a tributary to Chesapeake Bay).
 
  </br>
-
-<img src="Figs/sites.JPG" width="75%" height="75%" align="center">
+ 
+<p align="center">
+   <img src="Figs/sites.JPG" width="75%" height="75%" align="center">
+ </p>
+ 
 *Figrue 1. Old Women Creek (OWC) and York River site (CBV) portfolios. Site locations for meteorlogical, water quality, and nutrient stations. OWC is a fresh water estuary located near the town of Huran at Lake Erie and CBV is a brackish river located approximately 5 miles above Yorktown in the Chesapeake Bay. Map tiles by _Stamen Design_, under CC by 3.0. Data by _OpenStreetMap_, under ODbL. Image credits: Bonner Center, _Old Woman Creek Reserve_. & Durkee S., _Yortown Waterfront Walk_. 2020.*
 
 </br>
