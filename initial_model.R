@@ -95,6 +95,8 @@ reference_table <- tibble(dep = character(), predictor = character()) %>%
   add_column(paste0(.$dep, "-", .$predictor)) %>% 
   rename(name = 3)
 
+save(reference_table, file = "Model/referenceTable.RData")
+
 #Train data on cbv location with ranger
 result_cbv_ranger <- parApply(cl,reference_table,1, 
                               function(x) choose_inputs(
@@ -138,6 +140,12 @@ result_owc_rf <- parApply(cl,reference_table,1,
 
 #END parrallel processing
 stopCluster(cl)
+
+#Save models
+save(result_owc_rf, file = "Model/randomForestOWC.RData")
+save(result_cbv_rf, file = "Model/randomForestCBV.RData")
+save(result_owc_ranger, file = "Model/rangerOWC.RData")
+save(result_cbv_ranger, file = "Model/rangerCBV.RData")
 
 #Correlations of initial predictors
 par(mfrow=c(1, 2))
@@ -195,22 +203,56 @@ ggarrange(createSiteImportancePlots(group_importance_cbv_rf, "cbv"),
 
 
 #construct plot with cbv 
-hf_cbv_data_all <- preProcessData("data_NERR/output/cbv_hf_wq.csv", wq_predictors)
+#1. Read in data
+hf_cbv_data_prep <- preProcessData("data_NERR/output/cbv_hf_wq.csv", wq_predictors)
+#2. Filter out correct predictors
+hf_cbv_data_all <- prepData(hf_cbv_data_prep, wq_predictors)
+#3. Match predictions to no NA dataframe
 hf_data_cbv <- matchPredictions(result_cbv_rf, hf_cbv_data_all)
-cbv_pred_plot_nh4 <- ggplot(hf_data_cbv, aes(x=datetime_round, y = nh4))+geom_point()
-cbv_pred_plot_no3 <- ggplot(hf_data_cbv, aes(x=datetime_round, y = no3))+geom_point()
-cbv_pred_plot_po4 <- ggplot(hf_data_cbv, aes(x=datetime_round, y = po4))+geom_point()
-cbv_pred_plot_chla <- ggplot(hf_data_cbv, aes(x=datetime_round, y = chla))+geom_point()
+
+#Add color by site
+hf_data_cbv_site <- hf_cbv_data_prep %>% 
+  mutate(site = as.factor(site)) %>% 
+  select(site) %>% 
+  cbind(hf_data_cbv)
+
+
+#4. Create plots
+cbv_pred_plot_nh4 <- ggplot(hf_data_cbv_site, aes(x=datetime_round, y = nh4))+
+  geom_point()
+cbv_pred_plot_no3 <- ggplot(hf_data_cbv, aes(x=datetime_round, y = no3))+
+  geom_point()
+cbv_pred_plot_po4 <- ggplot(hf_data_cbv, aes(x=datetime_round, y = po4))+
+  geom_point()
+cbv_pred_plot_chla <- ggplot(hf_data_cbv, aes(x=datetime_round, y = chla))+
+  geom_point()
 
 
 
 #construct plot with owc
-hf_owc_data_all <- preProcessData("data_NERR/output/owc_hf_wq.csv", wq_predictors)
+#1. Read in data
+hf_owc_data_prep <- preProcessData("data_NERR/output/owc_hf_wq.csv", wq_predictors)
+#2. Filter out correct predictors
+hf_owc_data_all <- prepData(hf_owc_data_prep, wq_predictors)
+#3. Match predictions to no NA dataframe
 hf_data_owc <- matchPredictions(result_owc_rf, hf_owc_data_all)
-owc_pred_plot_nh4 <- ggplot(hf_data_owc, aes(x=datetime_round, y = nh4))+geom_point()
-owc_pred_plot_no3<- ggplot(hf_data_owc, aes(x=datetime_round, y = no3))+geom_point()
-owc_pred_plot_po4 <- ggplot(hf_data_owc, aes(x=datetime_round, y = po4))+geom_point()
-owc_pred_plot_chla <- ggplot(hf_data_owc, aes(x=datetime_round, y = chla))+geom_point()
+
+#Add color by site
+hf_data_owc_site <- hf_owc_data_prep %>% 
+  mutate(site = as.factor(site)) %>% 
+  select(site) %>% 
+  cbind(hf_data_owc)
+
+
+#4. Create plots
+owc_pred_plot_nh4 <- ggplot(hf_data_owc, aes(x=datetime_round, y = nh4))+
+  geom_point()
+owc_pred_plot_no3<- ggplot(hf_data_owc, aes(x=datetime_round, y = no3))+
+  geom_point()
+owc_pred_plot_po4 <- ggplot(hf_data_owc, aes(x=datetime_round, y = po4))+
+  geom_point()
+owc_pred_plot_chla <- ggplot(hf_data_owc, aes(x=datetime_round, y = chla))+
+  geom_point()
 
 ggarrange(ggarrange(
             cbv_pred_plot_nh4, 
@@ -291,43 +333,37 @@ ggarrange(plotPDPcbvnh4,
 
 #Observe Seiche & Hurricane Events
 createPlots <- function(x, day){
-  N132003nh4 <- ggplot(x, aes(x=datetime_round, y=nh4))+
+  N132003nh4 <- ggplot(x, aes(x=datetime_round, y=nh4, color = site))+
     geom_point()+
-    geom_smooth()+
     geom_vline(xintercept = day, color = "red")
   
-  N132003no3 <- ggplot(x, aes(x=datetime_round, y=no3))+
+  N132003no3 <- ggplot(x, aes(x=datetime_round, y=no3, color = site))+
     geom_point()+
-    geom_smooth()+
     geom_vline(xintercept = day, color = "red")
   
-  N132003po4 <- ggplot(x, aes(x=datetime_round, y=po4))+
+  N132003po4 <- ggplot(x, aes(x=datetime_round, y=po4, color = site))+
     geom_point()+
-    geom_smooth()+
     geom_vline(xintercept = day, color = "red")
   
-  N132003chla <- ggplot(x, aes(x=datetime_round, y=chla))+
+  N132003chla <- ggplot(x, aes(x=datetime_round, y=chla, color = site))+
     geom_point()+
-    geom_smooth()+
     geom_vline(xintercept = day, color = "red")
   
-  N132003temp <- ggplot(x, aes(x=datetime_round, y=Temp.mean))+
+  N132003temp <- ggplot(x, aes(x=datetime_round, y=Temp.mean, color = site))+
     geom_point()+
-    geom_smooth()+
     geom_vline(xintercept = day, color = "red")
   
-  N132003spCond <- ggplot(x, aes(x=datetime_round, y=SpCond.mean))+
+  N132003spCond <- ggplot(x, aes(x=datetime_round, y=SpCond.mean, color = site))+
     geom_point()+
-    geom_smooth()+
     geom_vline(xintercept = day, color = "red")
   
   return(ggarrange(N132003nh4, N132003no3, N132003po4, N132003chla, N132003temp, N132003spCond, nrow = 1, ncol=6))
 }
 
 
-nov132003seiche <- hf_data_owc[hf_data_owc$datetime_round > "2003-11-6" & hf_data_owc$datetime_round < "2003-11-23", ]
+nov132003seiche <- hf_data_owc_site[hf_data_owc$datetime_round > "2003-11-6" & hf_data_owc$datetime_round < "2003-11-23", ]
 
-oct272019seiche <- hf_data_owc[hf_data_owc$datetime_round > "2019-10-20" & hf_data_owc$datetime_round < "2019-11-8", ]
+oct272019seiche <- hf_data_owc_site[hf_data_owc$datetime_round > "2019-10-20" & hf_data_owc$datetime_round < "2019-11-8", ]
 
 ggarrange(createPlots(nov132003seiche, c(hf_data_owc$datetime_round[which(hf_data_owc$datetime_round == as.Date("2003-11-13"))[1]],
                                          hf_data_owc$datetime_round[which(hf_data_owc$datetime_round == as.Date("2003-11-16"))[1]])), 
@@ -335,11 +371,11 @@ ggarrange(createPlots(nov132003seiche, c(hf_data_owc$datetime_round[which(hf_dat
                                          hf_data_owc$datetime_round[which(hf_data_owc$datetime_round == as.Date("2019-11-1"))[1]])), 
           ncol = 1, nrow =2 )
 
-isabelle <- hf_data_cbv[hf_data_cbv$datetime_round > "2003-9-10" & hf_data_cbv$datetime_round < "2003-9-24", ]
+isabelle <- hf_data_cbv_site[hf_data_cbv_site$datetime_round > "2003-9-10" & hf_data_cbv$datetime_round < "2003-9-24", ]
 
-melissa <- hf_data_cbv[hf_data_cbv$datetime_round > "2019-10-4" & hf_data_cbv$datetime_round < "2019-10-18", ]
+melissa <- hf_data_cbv_site[hf_data_cbv_site$datetime_round > "2019-10-4" & hf_data_cbv$datetime_round < "2019-10-18", ]
 
-irene <- hf_data_cbv[hf_data_cbv$datetime_round > "2003-8-21" & hf_data_cbv$datetime_round < "2003-9-4", ]
+irene <- hf_data_cbv_site[hf_data_cbv_site$datetime_round > "2003-8-21" & hf_data_cbv$datetime_round < "2003-9-4", ]
 
 ggarrange(createPlots(isabelle, c(hf_data_cbv$datetime_round[which(hf_data_cbv$datetime_round == as.Date("2003-9-17"))[1]])), 
           createPlots(melissa, c(hf_data_cbv$datetime_round[which(hf_data_cbv$datetime_round == as.Date("2019-10-11"))[1]])),
