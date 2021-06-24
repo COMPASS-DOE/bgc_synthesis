@@ -117,7 +117,7 @@ matchPredictions <- function(x, y){
   predData <- y %>% 
     na.omit() 
   
-  #Find predictions fo four signatures
+  #Find predictions for four signatures
   nh4 <- predict(x[[2]]$finalModel, predData)
   po4 <- predict(x[[5]]$finalModel, predData)
   no3 <- predict(x[[8]]$finalModel, predData)
@@ -142,7 +142,6 @@ preProcessData <- function(x, pred){
   #Preprocess high frequency dataset for predicitions to be added
   processed_data <- read_csv(x)%>% 
     mutate(sin_doy = sin(yday(lubridate::date(datetime_round)) / (365.25 * pi))) %>% 
-    select(-c(2)) %>% 
     rename(Temp.mean = Temp, 
            SpCond.mean = SpCond, 
            DO_mgl.mean = DO_mgl, 
@@ -157,14 +156,16 @@ preProcessData <- function(x, pred){
            WSpd.mean = WSpd, 
            Wdir.mean= Wdir, 
            TotPAR.mean = TotPAR, 
-           TotPrcp.mean.5 = TotPrcp) %>% 
-    relocate(all_predictors) %>% 
-    select(pred, "datetime_round")
+           TotPrcp.mean.5 = TotPrcp) 
   
   return(processed_data)
 }
 
-
+prepData <- function(x, y){
+  x %>% 
+    relocate(y) %>% 
+    select(y, "datetime_round")
+}
 
 
 formPDP <- function(pdp, lab){
