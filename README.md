@@ -14,9 +14,9 @@
    <img src="Figs/sites.JPG" width="75%" height="75%" align="center">
  </p>
  
-<p font-size: "14px">
+
 *Figrue 1. Old Women Creek (OWC) and York River site (CBV) portfolios. Site locations for meteorlogical, water quality, and nutrient stations. OWC is a fresh water estuary located near the town of Huran at Lake Erie and CBV is a brackish river located approximately 5 miles above Yorktown in the Chesapeake Bay. Map tiles by _Stamen Design_, under CC by 3.0. Data by _OpenStreetMap_, under ODbL. Image credits: Bonner Center, _Old Woman Creek Reserve_. & Durkee S., _Yortown Waterfront Walk_. 2020.*
-</p>
+
 
 </br>
 
