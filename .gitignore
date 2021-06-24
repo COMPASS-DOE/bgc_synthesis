@@ -8,3 +8,4 @@ data_NERR/
 data_NERR/output/cbv_hf_wq_predictions.csv
 data_NERR/output/owc_hf_wq_predictions.csv
 Model/
+workplace*
