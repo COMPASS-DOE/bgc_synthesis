@@ -162,7 +162,7 @@ choose_inputs <- function(all_data, dep, pred, label, importance, prop = 3/4, t 
   dt_clean <- all_data %>% 
     select(all_of(dep), all_of(pred)) %>% 
     drop_na() %>% 
-    rename(actual = dep)
+    rename(actual = all_of(dep))
   
   #Calculate correlations
   correlations <- cor(dt_clean)

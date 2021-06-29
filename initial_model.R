@@ -27,7 +27,7 @@ rm(list = ls())
 
 # Load packages
 require(pacman)
-p_load(tidyverse, ggplot2, gridExtra, cowplot, lubridate, tidymodels,splitTools, ggthemes, parallel, ggpubr, hydroGOF, pdp, DALEXtra, kableExtra)
+p_load(tidyverse, corrplot, ggplot2, gridExtra, cowplot, lubridate, tidymodels,splitTools, ggthemes, parallel, ggpubr, hydroGOF, pdp, DALEXtra, kableExtra)
 
 #Load in necessary functions to train 
 source("Functions/train_Rforest_functions.R")

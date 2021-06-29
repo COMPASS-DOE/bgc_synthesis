@@ -23,3 +23,6 @@ met_predictors <- c("ATemp.mean",
 all_predictors <- unique(append(wq_predictors, met_predictors))
 
 predictors <- list(wq_predictors, met_predictors, all_predictors)
+
+#indexes of wq 
+wq_ind <- seq(2,11,3)

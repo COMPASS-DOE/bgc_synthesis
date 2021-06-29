@@ -84,7 +84,7 @@ makeFIPlots <- function(x){
 
 cbv_fi <- makeFIPlots(result_cbv_rf)
 owc_fi <- makeFIPlots(result_owc_rf)
-ggarrange(plotlist=c(cbv_fi, owc_fi), ncol=4, nrow=2)
+ggarrange(plotlist=c(cbv_fi, owc_fi), ncol=4, nrow=2, labels = c("cbv", rep("",3), "owc"))
 
 
 #4. Color code seiche and hurricane events by station
