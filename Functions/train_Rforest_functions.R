@@ -147,7 +147,9 @@ createImportancePlot <- function(importance, label){
   p <- ggplot(importance, aes(x = importance, y = reorder(y, importance), fill = y))+
     geom_bar(position="dodge", stat="identity")+
     theme(axis.title.x=element_blank(),
-          axis.title.y=element_blank(), 
+          axis.title.y=element_blank(),
+          axis.text.y=element_blank(),
+          axis.ticks.y=element_blank(),
           panel.background = element_rect(fill = "white",
                                           colour = "white"), 
           axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+

@@ -43,12 +43,14 @@ createImpPlot <- function(x, y, label){
   temp <- x[[3]][which(x[[3]]$group == y),]
   colRef <- x[[3]][which(x[[3]]$group == y),]
   temp$metric <- factor(temp$metric, levels = temp$metric[order(temp$values)])
-  
-  tempG <- ggplot(temp, aes(x = metric, y = values, fill = colRef$metric))+
+  sumValues <- sum(temp$values)
+  tempG <- ggplot(temp, aes(x = metric, y = (values/sumValues * 100), fill = colRef$metric))+
     geom_bar(position="dodge", stat="identity")+
     coord_flip()+
     theme(axis.title.x=element_blank(),
           axis.title.y=element_blank(), 
+          axis.text.y=element_blank(),
+          axis.ticks.y=element_blank(),
           panel.background = element_rect(fill = "white",
                                           colour = "white"), 
           axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
