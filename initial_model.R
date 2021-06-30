@@ -176,14 +176,10 @@ kable(sumTable) %>%
 
 
 #plot importance
-importance_cbv_ranger <- grabAllImportance(result_cbv_ranger, "ranger")
-importance_owc_ranger <- grabAllImportance(result_owc_ranger, "ranger")
 importance_cbv_rf <- grabAllImportance(result_cbv_rf, "randomForest")
 importance_owc_rf <- grabAllImportance(result_owc_rf, "randomForest")
 
 #group importance by predictors
-group_importance_cbv_ranger <- clusterChartModel(importance_cbv_ranger, reference_table)
-group_importance_owc_ranger <- clusterChartModel(importance_owc_ranger, reference_table)
 group_importance_cbv_rf <- clusterChartModel(importance_cbv_rf, reference_table)
 group_importance_owc_rf <- clusterChartModel(importance_owc_rf, reference_table)
 
