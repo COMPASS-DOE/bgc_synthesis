@@ -1,9 +1,11 @@
 ---
-title: Using machine learning to understand the drivers of nutrients in constrasting
+title: Using random forests to understand the drivers of nutrients in constrasting
   coastal ecosystems
 author: "Matt Duggan"
 date: "`r Sys.Date()`"
-output: html_document
+output:
+  html_document: default
+  word_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -79,7 +81,7 @@ To give stronger evidence that we are on the right assumptions we evaluated the 
 
 </br>
 
-```{r, echo=FALSE, out.width="85%", fig.cap="Figure 3. Correlations against high frequency data", fig.align = 'center'}
+```{r, echo=FALSE, out.width="85%", fig.cap="Figure 3. Correlations of original data", fig.align = 'center'}
 knitr::include_graphics("Figs/CorrelationPlots HF.png")
 ```
 

@@ -147,10 +147,66 @@ save(result_cbv_rf, file = "Model/randomForestCBV.RData")
 save(result_owc_ranger, file = "Model/rangerOWC.RData")
 save(result_cbv_ranger, file = "Model/rangerCBV.RData")
 
+#load plots
+load("Model/randomForestOWC.RData")
+load("Model/randomForestCBV.RData")
+load("Model/rangerOWC.RData")
+load("Model/rangerCBV.RData")
+load("Model/referenceTable.RData")
+
 #Correlations of initial predictors
-par(mfrow=c(1, 2))
-corrplot(result_cbv_rf[[1]]$correlations, method = "circle",title = "CBV", mar=c(0,0,4,0), tl.col = "black")
-corrplot(result_owc_rf[[1]]$correlations, title = "OWC", mar=c(0,0,4,0), tl.col = "black")
+par(mfrow=c(1, 1))
+
+corr_cbv <- cbv_all %>% 
+            select(wq_predictors, nh4, no3, po4, chla) %>% 
+            na.omit() %>% 
+            cor() %>% 
+            as.matrix()
+
+corr_owc <- owc_all %>% 
+  select(wq_predictors, nh4, no3, po4, chla) %>% 
+  na.omit() %>% 
+  cor() %>% 
+  as.matrix()
+
+cor.mtest <- function(mat) {
+  mat <- as.matrix(mat)
+  n <- ncol(mat)
+  p.mat<- matrix(NA, n, n)
+  diag(p.mat) <- 0
+  for (i in 1:(n - 1)) {
+    for (j in (i + 1):n) {
+      tmp <- cor.test(mat[, i], mat[, j])
+      p.mat[i, j] <- p.mat[j, i] <- tmp$p.value
+    }
+  }
+  colnames(p.mat) <- rownames(p.mat) <- colnames(mat)
+  p.mat
+}
+
+p.mat <- cor.mtest(corr_cbv)
+
+corrplot(corr_cbv,
+         type = "upper",
+         method = "circle",
+         tl.col = "black", 
+         sig.level = 0.05, 
+         insig = "blank", 
+         p.mat = p.mat, 
+         tl.srt=45)
+
+p.mat <- cor.mtest(corr_owc)
+
+corrplot(corr_owc,
+         type = "upper",
+         method = "circle",
+         tl.col = "black", 
+         sig.level = 0.05, 
+         insig = "blank", 
+         p.mat = p.mat, 
+         tl.srt=45)
+
+
 
 #Make a chart by chemical signature, predictors, RMSE, MAE and NSE
 sumTable <- data.frame()
@@ -191,8 +247,8 @@ group_importance_owc_rf <- clusterChartModel(importance_owc_rf, reference_table)
 
 #Create importance plots of predictors for owc and cbv of the best architecture:
 #randomForest
-ggarrange(createSiteImportancePlots(group_importance_cbv_rf, "cbv"),
-          createSiteImportancePlots(group_importance_owc_rf, "owc"), nrow = 2, ncol=1)
+ggarrange(createSiteImportancePlots(group_importance_cbv_rf, "cbv", 2),
+          createSiteImportancePlots(group_importance_owc_rf, "owc", 2), nrow = 2, ncol=1)
 
 
 #Predict on High Frequency Data

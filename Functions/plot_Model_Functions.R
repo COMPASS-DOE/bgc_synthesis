@@ -39,9 +39,9 @@ grabAllImportance <- function(r, t){
 
 
 #by signature
-createImpPlot <- function(x, y, label){
-  temp <- x[[3]][which(x[[3]]$group == y),]
-  colRef <- x[[3]][which(x[[3]]$group == y),]
+createImpPlot <- function(x, y, label, pred){
+  temp <- x[[pred]][which(x[[pred]]$group == y),]
+  colRef <- x[[pred]][which(x[[pred]]$group == y),]
   temp$metric <- factor(temp$metric, levels = temp$metric[order(temp$values)])
   sumValues <- sum(temp$values)
   tempG <- ggplot(temp, aes(x = metric, y = (values/sumValues * 100), fill = colRef$metric))+
@@ -70,11 +70,14 @@ createImpPlot <- function(x, y, label){
 
 
 #by Site
-createSiteImportancePlots <- function(x, label){
-  chla <- createImpPlot(x, "chla", label)
-  nh4 <- createImpPlot(x, "nh4", label)
-  no3 <- createImpPlot(x, "no3", label)
-  po4 <- createImpPlot(x, "po4", label)
+createSiteImportancePlots <- function(x, label, pred){
+  
+  nh4 <- createImpPlot(x, "nh4", "", pred)
+  no3 <- createImpPlot(x, "no3", "", pred)
+  po4 <- createImpPlot(x, "po4", "", pred)
+  chla <- createImpPlot(x, "chla", "", pred)
+  
+
   figure <- ggarrange(nh4, no3, po4, chla, ncol = 4, nrow = 1)
   annotate_figure(figure, left = text_grob("Predictor", color = "black", rot = 90), 
                   bottom = "Importance")
