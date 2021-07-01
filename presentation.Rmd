@@ -221,7 +221,7 @@ knitr::include_graphics("Figs/Feature Importance.png")
 
 Now that we know what features are probably our best indicators for the values we are predicting, we can look at the hourly patterns of our values and see the differences and similarites across our four nutrient values. Additionally, you can find nutrient patterns by the month in the supplemental information ([SI Figure 7 & 8](#monthly-patterns))
 
-```{r, echo=FALSE, out.width="50%", fig.cap="Figure 8. Polar plots of nutrient patterns by the hour", fig.align = 'center'}
+```{r, echo=FALSE, out.width="100%", fig.cap="Figure 8. Polar plots of nutrient patterns by the hour", fig.align = 'center'}
 knitr::include_graphics("Figs/PatternsByHour.png")
 ```
 
@@ -340,6 +340,8 @@ knitr::include_graphics("Figs/pdp.png")
 
 
 ## Monthly Patterns
+
+....Construction Zone ... 
 
 ```{r, echo=FALSE, out.width="85%", fig.cap="SI Figure 6. CBV nutrient patterns by month", fig.align = 'center'}
 knitr::include_graphics("Figs/PatternsByMonthCBV.png")
