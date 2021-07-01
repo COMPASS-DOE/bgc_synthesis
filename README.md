@@ -10,10 +10,18 @@ All raw data is in the _"data_NERR"_ folder: "cbv" and "owc". For each location 
 
 We highly encourage you to create boxplots to observe the mean and distribution of your features as below for each location:
 
+### Filter and Process Data
 
+### Train the RF model
 
-###
+### Analyze Data
 
+## Contributions
 
+Code edits or concerns are welcome and appreciated! Insert these in (Issues)[https://github.com/COMPASS-DOE/bgc_synthesis/issues] or (Pull Request)[https://github.com/COMPASS-DOE/bgc_synthesis/projects] depending on severity. 
+
+## Data Sources
+
+Data came from NERR
 
 
