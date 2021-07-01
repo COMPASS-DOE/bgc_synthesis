@@ -2,7 +2,7 @@
 .Rhistory
 .RData*
 .Ruserdata
-Rplot.pdf
+Rplot*
 bgc_synthesis.Rproj
 data_NERR/
 data_NERR/output/cbv_hf_wq_predictions.csv
