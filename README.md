@@ -18,7 +18,7 @@ We highly encourage you to create boxplots to observe the mean and distribution 
 
 ## Contributions
 
-Code edits or concerns are welcome and appreciated! Insert these in (Issues)[https://github.com/COMPASS-DOE/bgc_synthesis/issues] or (Pull Request)[https://github.com/COMPASS-DOE/bgc_synthesis/projects] depending on severity. 
+Code edits or concerns are welcome and appreciated! Insert these in [Issues](https://github.com/COMPASS-DOE/bgc_synthesis/issues) or [Pull Request](https://github.com/COMPASS-DOE/bgc_synthesis/projects) depending on severity. 
 
 ## Data Sources
 
