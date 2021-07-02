@@ -341,12 +341,6 @@ knitr::include_graphics("Figs/pdp.png")
 
 ## Monthly Patterns
 
-....Construction Zone ... 
-
-```{r, echo=FALSE, out.width="85%", fig.cap="SI Figure 6. CBV nutrient patterns by month", fig.align = 'center'}
-knitr::include_graphics("Figs/PatternsByMonthCBV.png")
-```
-
-```{r, echo=FALSE, out.width="85%", fig.cap="SI Figure 7. OWC nutrient patterns by month", fig.align = 'center'}
-knitr::include_graphics("Figs/PatternsByMonthOWC.png")
+```{r, echo=FALSE, out.width="100%", fig.cap="SI Figure 7. Nutrient patterns by month", fig.align = 'center'}
+knitr::include_graphics("Figs/PatternsByMonthALL.png")
 ```
