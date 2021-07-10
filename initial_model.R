@@ -1,6 +1,6 @@
 # ---------------------------
 
-# Purpose: Initial testing of models: what set of parameters works best?
+# : Initial testing of models: what set of parameters works best?
 
 # This script helps us decide what set of parameters is most useful for predicting
 # nutrients/chla, and which package to use. This same workflow should be useful for 
@@ -386,51 +386,55 @@ ggarrange(plotPDPcbvnh4,
 #Observe Seiche & Hurricane Events
 createPlots <- function(x, day){
   N132003nh4 <- ggplot(x, aes(x=datetime_round, y=nh4, color = site))+
-    geom_point()+
-    geom_vline(xintercept = day, color = "red")
+    geom_vline(xintercept = day, color = "black")+
+    geom_smooth()+
+    theme(legend.position = "none")+
+    xlab("Date")
   
   N132003no3 <- ggplot(x, aes(x=datetime_round, y=no3, color = site))+
-    geom_point()+
-    geom_vline(xintercept = day, color = "red")
+    geom_vline(xintercept = day, color = "black")+
+    geom_smooth()+
+    theme(legend.position = "none")+
+    xlab("Date")
   
   N132003po4 <- ggplot(x, aes(x=datetime_round, y=po4, color = site))+
-    geom_point()+
-    geom_vline(xintercept = day, color = "red")
+    geom_vline(xintercept = day, color = "black")+
+    geom_smooth()+
+    theme(legend.position = "none")+
+    xlab("Date")
   
   N132003chla <- ggplot(x, aes(x=datetime_round, y=chla, color = site))+
-    geom_point()+
-    geom_vline(xintercept = day, color = "red")
-  
-  N132003temp <- ggplot(x, aes(x=datetime_round, y=Temp.mean, color = site))+
-    geom_point()+
-    geom_vline(xintercept = day, color = "red")
+    geom_vline(xintercept = day, color = "black")+
+    geom_smooth()+
+    theme(legend.position = "none")+
+    xlab("Date")
   
   N132003spCond <- ggplot(x, aes(x=datetime_round, y=SpCond.mean, color = site))+
-    geom_point()+
-    geom_vline(xintercept = day, color = "red")
+    geom_vline(xintercept = day, color = "black")+
+    geom_smooth()+
+    xlab("Date")+
+    ylab("Conductivity")
   
-  return(ggarrange(N132003nh4, N132003no3, N132003po4, N132003chla, N132003temp, N132003spCond, nrow = 1, ncol=6))
+  return(ggarrange(N132003nh4, N132003no3, N132003po4, N132003chla,  N132003spCond, nrow = 1, ncol=5))
 }
 
 
-nov132003seiche <- hf_data_owc_site[hf_data_owc$datetime_round > "2003-11-6" & hf_data_owc$datetime_round < "2003-11-23", ]
+nov132003seiche <- hf_data_owc_site[hf_data_owc$datetime_round > "2003-4-4 7:00" & hf_data_owc$datetime_round < "2003-4-8 2:00", ]
 
-oct272019seiche <- hf_data_owc_site[hf_data_owc$datetime_round > "2019-10-20" & hf_data_owc$datetime_round < "2019-11-8", ]
+oct272019seiche <- hf_data_owc_site[hf_data_owc$datetime_round > "2019-10-30 20:00" & hf_data_owc$datetime_round < "2019-11-2 3:00", ]
 
-ggarrange(createPlots(nov132003seiche, c(hf_data_owc$datetime_round[which(hf_data_owc$datetime_round == as.Date("2003-11-13"))[1]],
-                                         hf_data_owc$datetime_round[which(hf_data_owc$datetime_round == as.Date("2003-11-16"))[1]])), 
-          createPlots(oct272019seiche, c(hf_data_owc$datetime_round[which(hf_data_owc$datetime_round == as.Date("2019-10-27"))[1]],
-                                         hf_data_owc$datetime_round[which(hf_data_owc$datetime_round == as.Date("2019-11-1"))[1]])), 
+ggarrange(createPlots(nov132003seiche, c(hf_data_owc$datetime_round[which(hf_data_owc$datetime_round == as.Date("2003-4-5 5:00"))[1]],
+                                         hf_data_owc$datetime_round[which(hf_data_owc$datetime_round == as.Date("2003-4-7 18:00"))[1]])), 
+          createPlots(oct272019seiche, c(hf_data_owc$datetime_round[which(hf_data_owc$datetime_round == as.Date("2019-11-1 0:00"))[1]])), 
           ncol = 1, nrow =2 )
 
-isabelle <- hf_data_cbv_site[hf_data_cbv_site$datetime_round > "2003-9-10" & hf_data_cbv$datetime_round < "2003-9-24", ]
+isabel <- hf_data_cbv_site[hf_data_cbv_site$datetime_round > "2003-9-16 18:00" & hf_data_cbv$datetime_round < "2003-9-20 22:00", ]
 
-melissa <- hf_data_cbv_site[hf_data_cbv_site$datetime_round > "2019-10-4" & hf_data_cbv$datetime_round < "2019-10-18", ]
+sandy <- hf_data_cbv_site[hf_data_cbv_site$datetime_round > "2012-10-24 22:00" & hf_data_cbv$datetime_round < "2012-10-31 4:00", ]
 
-irene <- hf_data_cbv_site[hf_data_cbv_site$datetime_round > "2003-8-21" & hf_data_cbv$datetime_round < "2003-9-4", ]
 
-ggarrange(createPlots(isabelle, c(hf_data_cbv$datetime_round[which(hf_data_cbv$datetime_round == as.Date("2003-9-17"))[1]])), 
-          createPlots(melissa, c(hf_data_cbv$datetime_round[which(hf_data_cbv$datetime_round == as.Date("2019-10-11"))[1]])),
-          createPlots(irene, c(hf_data_cbv$datetime_round[which(hf_data_cbv$datetime_round == as.Date("2003-8-28"))[1]])),
-          ncol = 1, nrow =3 )
+
+ggarrange(createPlots(isabel, c(hf_data_cbv$datetime_round[which(hf_data_cbv$datetime_round == as.Date("2003-9-18 21:00"))[1]])), 
+          createPlots(sandy, c(hf_data_cbv$datetime_round[which(hf_data_cbv$datetime_round == as.Date("2012-10-29 1:00"))[1]])),
+          ncol = 1, nrow =2 )
 
