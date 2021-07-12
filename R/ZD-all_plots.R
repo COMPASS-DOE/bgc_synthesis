@@ -42,7 +42,7 @@
          kableExtra)
   
   #Load in necessary functions to plot
-  source("Functions/eval_models_functions.R")
+  source("Functions/all_plots_functions.R")
   
   #Load in necessary functions to train 
   source("Functions/train_Rforest_functions.R")
@@ -103,7 +103,8 @@
 
 
 
-  
+
+
 
   
   

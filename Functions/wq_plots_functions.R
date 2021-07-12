@@ -1,60 +1,33 @@
-#Make predictions of the four signatures and bind it to the hf data
-matchPredictions <- function(x, y){
-  
-  #split data into date, predictors, and no nas
-  predData <- y %>% 
-    na.omit() 
-  
-  #Find predictions for four signatures
-  nh4 <- predict(x[[2]]$finalModel, predData)
-  po4 <- predict(x[[5]]$finalModel, predData)
-  no3 <- predict(x[[8]]$finalModel, predData)
-  chla <- predict(x[[11]]$finalModel, predData)
-  
-  
-  #Combine predictions with date into one date frame
-  predictions <- cbind(nh4, po4, no3, chla)
-  names(predictions) <- c("nh4", "po4", "no3", "chla")
-  
-  #Merge the predictions with the original no na data set and then merge with 
-  #original dataset
-  
-  y[-unique(which(is.na(y), arr.ind = TRUE)[,1]), (ncol(y)+1):(ncol(y)+4)] <- predictions
-  
-  return(y)
+#Actual versus predicted Plots
+makeAVPPlots <- function(x){
+  avpPlots <- list()
+  j <- 1
+  for(i in wq_ind){
+    avp <-x[[i]]$plot$data[,c(2,4)]
+    
+    avpPlots[[j]] <- ggplot(avp, aes(x=actual, y=.pred))+
+      geom_point()+
+      geom_abline(intercept = 0, slope = 1, color="red")+
+      geom_text(x = (mean(avp$actual)/2), y = (max(avp$.pred)*4/5),
+                label = paste0("r2: ",as.character(cor(avp$actual, avp$.pred)^2)),
+                parse = TRUE)
+    j <- j+1
+  }
+  return(avpPlots)
 }
 
-
-preProcessData <- function(x, pred){
-  
-  #Preprocess high frequency dataset for predicitions to be added
-  processed_data <- read_csv(x)%>% 
-    mutate(sin_doy = sin(yday(lubridate::date(datetime_round)) / (365.25 * pi))) %>% 
-    rename(Temp.mean = Temp, 
-           SpCond.mean = SpCond, 
-           DO_mgl.mean = DO_mgl, 
-           Depth.mean = Depth, 
-           pH.mean = pH, 
-           Turb.mean = Turb, 
-           q_cfs.mean.5 = q_cfs, 
-           sin_doy = sin_doy, 
-           ATemp.mean = ATemp, 
-           RH.mean = RH, 
-           BP.mean = BP, 
-           WSpd.mean = WSpd, 
-           Wdir.mean= Wdir, 
-           TotPAR.mean = TotPAR, 
-           TotPrcp.mean.5 = TotPrcp) 
-  
-  return(processed_data)
+#Feature Importance plots just for water quality
+makeFIPlots <- function(x){
+  fiPlots <- list()
+  j<-1
+  for(i in wq_ind){
+    fiPlots[[j]] <- x[[i]]$importancePlot
+    j<-j+1
+  }
+  return(fiPlots)
 }
 
-prepData <- function(x, y){
-  x %>% 
-    relocate(y) %>% 
-    select(y, "datetime_round")
-}
-
+# Partial Dependency Plots ------------------------------------------------
 
 formPDP <- function(pdp, lab){
   TempNH4 <- as_tibble(pdp[[2]])  %>% 
@@ -136,3 +109,4 @@ formPDP <- function(pdp, lab){
   return(pdp_all)
   
 }
+
