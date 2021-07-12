@@ -37,7 +37,7 @@ output:
   # b) source files
     # - Functions
       source("Functions/train_Rforest_functions.R") #Training 
-      source("Functions/plot_Model_Functions.R") #Ploting 
+      source("Functions/wq_plots_Functions.R") #Ploting 
   
     # - Constants
       source("Constants/initial_model_constants.R")
