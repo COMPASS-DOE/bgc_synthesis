@@ -22,4 +22,4 @@ Code edits or concerns are welcome and appreciated! Insert these in [Issues](htt
 
 ## Data Sources
 
-Data came from NERR from 2000 to 2020.
+Data came from National Estuarine Research Reserve system ([NERR](https://cdmo.baruch.sc.edu/)) from 2000 to 2020.
