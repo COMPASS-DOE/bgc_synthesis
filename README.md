@@ -23,3 +23,7 @@ Code edits or concerns are welcome and appreciated! Insert these in [Issues](htt
 ## Data Sources
 
 Data came from National Estuarine Research Reserve system ([NERR](https://cdmo.baruch.sc.edu/)) from 2000 to 2020.
+
+## Example Workflow
+
+Extensive literature describing the procedures are currently being prepared. In the meantime, checkout the presentation markdown file for figures and a short description on their interpretations. 
