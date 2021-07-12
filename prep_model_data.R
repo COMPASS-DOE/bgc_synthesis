@@ -35,25 +35,25 @@
 
 # 1. Setup ----------------------------------------------------------------
 
-rm(list=ls()) # clear workspace
-#load packages
-require(pacman) # easy way to load packages
-pacman::p_load(hms, #extract time from datetime, 
-               lubridate, #work with dates
-               parsedate, #auto-parse dates without being told format
-               tidyverse, #data wrangling
-               tictoc, #timing things
-               furrr, #parallel for purrr
-               purrr, #tools to iterate rowwise through a dataframe (used for pmap)
-               beepr, # yell at me when you're done
-               dataRetrieval) # USGS's package to pull data from their portal
-
-
-#Predefined constant variables in preparation of data
-source("./Constants/prep_data_constants.R")
-
-#Predefined functions used in preparation of data
-source("./Functions/prep_data_functions.R")
+  rm(list=ls()) # clear workspace
+  #load packages
+  require(pacman) # easy way to load packages
+  pacman::p_load(hms, #extract time from datetime, 
+                 lubridate, #work with dates
+                 parsedate, #auto-parse dates without being told format
+                 tidyverse, #data wrangling
+                 tictoc, #timing things
+                 furrr, #parallel for purrr
+                 purrr, #tools to iterate rowwise through a dataframe (used for pmap)
+                 beepr, # yell at me when you're done
+                 dataRetrieval) # USGS's package to pull data from their portal
+  
+  
+  #Predefined constant variables in preparation of data
+  source("./Constants/prep_data_constants.R")
+  
+  #Predefined functions used in preparation of data
+  source("./Functions/prep_data_functions.R")
 
 
 # 2. read nutrients -------------------------------------------------------
