@@ -26,4 +26,4 @@ Data came from National Estuarine Research Reserve system ([NERR](https://cdmo.b
 
 ## Example Workflow
 
-Extensive literature describing the procedures are currently being prepared. In the meantime, checkout the presentation markdown file for figures and a short description on their interpretations. 
+Extensive literature describing the procedures are currently being prepared. In the meantime, checkout the presentation markdown [file](https://github.com/COMPASS-DOE/bgc_synthesis/blob/main/presentation.Rmd) for figures and a short description on their interpretations. 
