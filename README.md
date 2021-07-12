@@ -6,8 +6,6 @@
 
 All raw data is in the _"data_NERR"_ folder: "cbv" and "owc". For each location we have a folder that splits up water quality, nutrient, and meteorlogical data specied in different folder, respectively. This is how NERR gives us the data for these locations, so we suspect this procedure to be standard.
 
-We highly encourage you to create boxplots to observe the mean and distribution of your features as below for each location:
-
 ### Running scripts
 
 We organized our workflow in the R folder. Inside this folder scripts are in alphabetical order A-G to represent the proper steps to go from prepping the data, constructing models, evaluating the models, and finally having the chance to evaluate high frequency predictions. We split evaluation of prediction into patterns and events to help in minimizing computational time.
