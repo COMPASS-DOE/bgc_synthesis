@@ -1,4 +1,3 @@
-## ---------------------------
 ##
 ## Script name: prep_data_functions
 ##
@@ -10,19 +9,12 @@
 ##
 ## Email: peter.regier@pnnl.gov
 ##
-## ---------------------------
 ##
 ## Notes:
 ##   
 ##
-## ---------------------------
 
-#clear workspace
-#rm(list=ls())
 
-##################################################
-##### FUNCTIONS
-##################################################
 
 #NEW: Read in csv by folder
 read_dir <- function(directory) {
@@ -275,6 +267,3 @@ calc_stats_owc <- function(x, y, z) {
   
   return(output)
 }
-
-#Lock variables from being edited within future R scripts
-#lapply(ls(), lockBinding, env = globalenv())
