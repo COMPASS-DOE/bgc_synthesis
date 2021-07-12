@@ -1,12 +1,10 @@
-# Using machine learning to understand the drivers of nutrients in constrasting coastal ecosystems
+# Changes in diurnal patterns of nutrients and chlorphyll-a on disturbance event and decadel timescales revealed by machine learning
 
 ## Overview
 
 ### Get to know the data
 
 All raw data is in the _"data_NERR"_ folder: "cbv" and "owc". For each location we have a folder that splits up water quality, nutrient, and meteorlogical data specied in different folder, respectively. This is how NERR gives us the data for these locations, so we suspect this procedure to be standard.
-
-We highly encourage you to create boxplots to observe the mean and distribution of your features as below for each location:
 
 ### Running scripts
 
@@ -24,4 +22,8 @@ Code edits or concerns are welcome and appreciated! Insert these in [Issues](htt
 
 ## Data Sources
 
-Data came from NERR from 2000 to 2020.
+Data came from National Estuarine Research Reserve system ([NERR](https://cdmo.baruch.sc.edu/)) from 2000 to 2020.
+
+## Example Workflow
+
+Extensive literature describing the procedures are currently being prepared. In the meantime, checkout the presentation markdown [file](https://github.com/COMPASS-DOE/bgc_synthesis/blob/main/presentation.Rmd) for figures and a short description on their interpretations. 
