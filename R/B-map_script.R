@@ -39,7 +39,12 @@
          hydroGOF, 
          pdp, 
          DALEXtra, 
-         kableExtra)
+         kableExtra, 
+         sf, 
+         spData, 
+         ggmap)
+  
+  source("Constants/prep_data_constants.R")
   
   #hf data
   hf_cbv <- read.csv(paste0(filepath_out, "/cbv_hf_wq.csv"))
@@ -54,7 +59,7 @@
            long = unlist(map(geometry,2)))
   
   #map of united states
-  data("us_states", package = "spData")
+  data("us_states")
   us_states_2163 = st_transform(us_states, crs = 2163)
 
 # 2. Find Conductivity of each site ---------------------------------------
