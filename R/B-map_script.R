@@ -40,7 +40,8 @@
          pdp, 
          DALEXtra, 
          kableExtra, 
-         sf,
+         sf, 
+         spData, 
          ggmap)
   
   source("Constants/prep_data_constants.R")
@@ -58,7 +59,7 @@
            long = unlist(map(geometry,2)))
   
   #map of united states
-  data("us_states", package = "spData")
+  data("us_states")
   us_states_2163 = st_transform(us_states, crs = 2163)
 
 # 2. Find Conductivity of each site ---------------------------------------
