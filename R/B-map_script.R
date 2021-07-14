@@ -39,7 +39,11 @@
          hydroGOF, 
          pdp, 
          DALEXtra, 
-         kableExtra)
+         kableExtra, 
+         sf,
+         ggmap)
+  
+  source("Constants/prep_data_constants.R")
   
   #hf data
   hf_cbv <- read.csv(paste0(filepath_out, "/cbv_hf_wq.csv"))
@@ -101,8 +105,6 @@
     theme(axis.text.x = element_text(angle = 90))+
     scale_color_gradient(low="blue", high="red")
 
-  cbv_map
-
 
 # York Town Location Map --------------------------------------------------
   
@@ -148,8 +150,6 @@
     geom_text(aes(label=siteName), color = "black", size = 3, vjust = 1)+
     theme(axis.text.x = element_text(angle = 90))+
     scale_color_gradient(low="blue", high="red")
-  
-  owc_map
 
 
 # Old Woman Creek Location Map --------------------------------------------
@@ -163,4 +163,6 @@
     geom_sf(data = owc_bb, fill = NA, color = "red", size = 4)+
     theme_void()
   
+  #may not show given size of site
   ggowc
+  

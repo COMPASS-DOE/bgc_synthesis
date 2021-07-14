@@ -160,11 +160,12 @@ createImportancePlot <- function(importance, label){
 
 # Create model, and return useful things (data, plots, stats)
 choose_inputs <- function(all_data, dep, pred, label, importance, prop = 3/4, t = -1, modelType = "ranger", station = "") {
+  
   #Clean and filter data set
   dt_clean <- all_data %>% 
     select(all_of(dep), all_of(pred)) %>% 
     drop_na() %>% 
-    rename(actual = all_of(dep))
+    rename(actual = dep)
   
   #Calculate correlations
   correlations <- cor(dt_clean)
