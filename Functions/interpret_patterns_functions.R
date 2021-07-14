@@ -1,6 +1,11 @@
-getSummary <- function(x, label){
+normalize <- function(x){
+  return((x-min(x))/(max(x)-min(x)))
+}
+
+getSummary <- function(x, label, rowsKeep = 1:nrow(x)){
   summaryByDM <- x %>% 
     mutate(hour = format(datetime_round, "%H")) %>% 
+    .[rowsKeep,] %>% 
     group_by(hour) %>% 
     na.omit() %>% 
     summarise(nh4.hour.mean = mean(nh4), 
@@ -9,10 +14,10 @@ getSummary <- function(x, label){
               chla.hour.mean = mean(chla)) %>% 
     add_column(label) %>% 
     mutate(
-      nh4.hour.mean = scale(nh4.hour.mean), 
-      no3.hour.mean = scale(no3.hour.mean), 
-      po4.hour.mean = scale(po4.hour.mean), 
-      chla.hour.mean = scale(chla.hour.mean)
+      nh4.hour.mean = normalize(nh4.hour.mean), 
+      no3.hour.mean = normalize(no3.hour.mean), 
+      po4.hour.mean = normalize(po4.hour.mean), 
+      chla.hour.mean = normalize(chla.hour.mean)
     )
   return(summaryByDM)
 }

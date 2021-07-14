@@ -31,40 +31,66 @@
                  furrr, #parallel for purrr
                  purrr, #tools to iterate rowwise through a dataframe (used for pmap)
                  beepr, # yell at me when you're done
-                 dataRetrieval) # USGS's package to pull data from their portal
+                 dataRetrieval,
+                 caret) # USGS's package to pull data from their portal
   source("Functions/interpret_patterns_functions.R")
   
   #read in prediction data
   CBVpred <- read_csv("data_NERR/output/cbv_hf_wq_predictions.csv")
-  OWCpred <- read_csv("data_NERR/output/cbv_hf_wq_predictions.csv")
+  OWCpred <- read_csv("data_NERR/output/owc_hf_wq_predictions.csv")
 
 # 2. Hourly mean of nutrient data -----------------------------------------
 
-  #return mean nutrient information each hour
-  hf_data_cbv_summary <- getSummary(CBVpred, "CBV")
-  hf_data_owc_summary <- getSummary(OWCpred, "OWC")
+  #return mean nutrient information each hour for first half of data
+  hf_data_cbv_summary_first <- getSummary(CBVpred, "CBV", 1:(nrow(CBVpred)/2))
+  hf_data_owc_summary_first <- getSummary(OWCpred, "OWC", 1:(nrow(OWCpred)/2))
   
-  #combined data
-  hf_data_all <- rbind(hf_data_cbv_summary, hf_data_owc_summary)
+  
+  
+  #combined data for first half of data
+  hf_data_all_first <- rbind(hf_data_cbv_summary_first, hf_data_owc_summary_first) 
+  
+  #return mean nutrient information each hour for second half of data
+  hf_data_cbv_summary_sec <- getSummary(CBVpred, "CBV", (nrow(CBVpred)/2):nrow(CBVpred))
+  hf_data_owc_summary_sec <- getSummary(OWCpred, "OWC", (nrow(OWCpred)/2):nrow(OWCpred))
+  
+  #combined data for second half of data
+  hf_data_all_sec <- rbind(hf_data_cbv_summary_sec, hf_data_owc_summary_sec)
+  
   
   #create polar chart for each nutrient
-  nh4PPall <- ggplot(hf_data_all, aes(x=hour, y=nh4.hour.mean, color = label))+
+  nh4PPall_first <- ggplot(hf_data_all_first, aes(x=hour, y=nh4.hour.mean, color = label))+
     geom_point()+coord_polar()+ theme(legend.position = "none")
   
-  no3PPall <- ggplot(hf_data_all, aes(x=hour, y=no3.hour.mean, color = label))+
+  no3PPall_first <- ggplot(hf_data_all_first, aes(x=hour, y=no3.hour.mean, color = label))+
     geom_point()+coord_polar()+ theme(legend.position = "none")
   
-  po4PPall <- ggplot(hf_data_all, aes(x=hour, y=po4.hour.mean, color = label))+
+  po4PPall_first <- ggplot(hf_data_all_first, aes(x=hour, y=po4.hour.mean, color = label))+
     geom_point()+coord_polar()+ theme(legend.position = "none")
   
   
-  chlaPPall <- ggplot(hf_data_all, aes(x=hour, y=chla.hour.mean, color = label))+
-    geom_point()+coord_polar()+ theme()
+  chlaPPall_first <- ggplot(hf_data_all_first, aes(x=hour, y=chla.hour.mean, color = label))+
+    geom_point()+coord_polar()+ theme(legend.position = "none")
+  
+  #create polar chart for each nutrient
+  nh4PPall_sec<- ggplot(hf_data_all_sec, aes(x=hour, y=nh4.hour.mean, color = label))+
+    geom_point()+coord_polar()+ theme(legend.position = "none")
+  
+  no3PPall_sec <- ggplot(hf_data_all_sec, aes(x=hour, y=no3.hour.mean, color = label))+
+    geom_point()+coord_polar()+ theme(legend.position = "none")
+  
+  po4PPall_sec <- ggplot(hf_data_all_sec, aes(x=hour, y=po4.hour.mean, color = label))+
+    geom_point()+coord_polar()+ theme(legend.position = "none")
+  
+  
+  chlaPPall_sec <- ggplot(hf_data_all_sec, aes(x=hour, y=chla.hour.mean, color = label))+
+    geom_point()+coord_polar()+ theme(legend.position = "none")
   
   #plot
-  ggarrange(nh4PPall, no3PPall, po4PPall, chlaPPall, nrow = 1, ncol = 4)
-
-
+  ggarrange(nh4PPall_first, no3PPall_first, po4PPall_first, chlaPPall_first, 
+            nh4PPall_sec, no3PPall_sec, po4PPall_sec, chlaPPall_sec, 
+            nrow = 2, ncol = 4)
+  
 
 # 3. Create coord plots for each month ------------------------------------
 
