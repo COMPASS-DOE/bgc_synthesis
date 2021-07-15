@@ -16,6 +16,9 @@ makeAVPPlots <- function(x){
   return(avpPlots)
 }
 
+
+# Feature Importance Plots ------------------------------------------------
+
 #Feature Importance plots just for water quality
 makeFIPlots <- function(x){
   fiPlots <- list()
@@ -25,6 +28,17 @@ makeFIPlots <- function(x){
     j<-j+1
   }
   return(fiPlots)
+}
+
+getFIData <-function(x){
+  fiPlotsData <- list()
+  j<-1
+  for(i in wq_ind){
+    fiPlotsData[[j]] <- x[[1]]$importancePlot$data/sum(x[[1]]$importancePlot$data)
+    j<-j+1
+  }
+  fiPlotsData <- do.call("cbind", fiPlotsData)
+  return(fiPlotsData)
 }
 
 # Partial Dependency Plots ------------------------------------------------

@@ -118,20 +118,43 @@
 
 # Actual v Predicted Plots ------------------------------------------------
 
-
-
-cbv_avp <- makeAVPPlots(result_cbv_rf)
-owc_avp <- makeAVPPlots(result_owc_rf)
-
-ggarrange(plotlist=c(cbv_avp, owc_avp), ncol = 4, nrow=2)
+  cbv_avp <- makeAVPPlots(result_cbv_rf)
+  owc_avp <- makeAVPPlots(result_owc_rf)
+  
+  ggarrange(plotlist=c(cbv_avp, owc_avp), ncol = 4, nrow=2)
 
 
 # Feature Importance Plots ------------------------------------------------
 
-cbv_fi <- makeFIPlots(result_cbv_rf)
-owc_fi <- makeFIPlots(result_owc_rf)
-ggarrange(plotlist=c(cbv_fi, owc_fi), ncol=4, nrow=2, labels = c("cbv", rep("",3), "owc"))
+  cbv_fi <- makeFIPlots(result_cbv_rf)
+  owc_fi <- makeFIPlots(result_owc_rf)
+  ggarrange(plotlist=c(cbv_fi, owc_fi), ncol=4, nrow=2, labels = c("cbv", rep("",3), "owc"))
 
+
+# Feature Importance Data -------------------------------------------------
+
+  #Collect data
+  cbv_fi_data <- getFIData(result_cbv_rf)
+  owc_fi_data <- getFIData(result_owc_rf)
+  
+  #Create Table
+  table <- cbind(cbv_fi_data, owc_fi_data)
+  colnames(table) <- 1:8
+  rownames(table) <- c("Water Temperature", 
+                       "Relative Humidity", 
+                       "Barometric Pressure", 
+                       "Wind Speed", 
+                       "Wind Direction", 
+                       "Solar Flux", 
+                       "Total Precipitation", 
+                       "Time of Day")
+  sums <- apply(table, 1, sum) 
+  table <- table[c(7, 8, 1, 4, 3, 5, 6, 2),] %>% relocate(1, 5, 2, 6, 3, 7, 4, 8) 
+  kable(table, col.names = NULL) %>% 
+    kable_classic() %>% 
+    add_header_above(c(" " = 1, "NH4" = 2, "NO3" = 2, "PO4" = 2, "CHLA" = 2)) %>% 
+    column_spec(seq(2,9,2), 
+                background = "lightgrey")
 
 # Partial Dependency Plots ---------------------------------------------
 
