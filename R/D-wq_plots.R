@@ -141,18 +141,18 @@
   table <- cbind(cbv_fi_data, owc_fi_data)
   colnames(table) <- 1:8
   rownames(table) <- c("Water Temperature", 
-                       "Relative Humidity", 
-                       "Barometric Pressure", 
-                       "Wind Speed", 
-                       "Wind Direction", 
-                       "Solar Flux", 
-                       "Total Precipitation", 
+                       "Specific Conductivity", 
+                       "Dissolved Oxygen", 
+                       "Depth", 
+                       "pH", 
+                       "Turbidity", 
+                       "Discharge", 
                        "Time of Day")
   sums <- apply(table, 1, sum) 
   table <- table[c(7, 8, 1, 4, 3, 5, 6, 2),] %>% relocate(1, 5, 2, 6, 3, 7, 4, 8) 
   kable(table, col.names = NULL) %>% 
     kable_classic() %>% 
-    add_header_above(c(" " = 1, "NH4" = 2, "NO3" = 2, "PO4" = 2, "CHLA" = 2)) %>% 
+    add_header_above(c(" " = 1, "Ammonia" = 2, "Nitrate" = 2, "Phosphate" = 2, "Chlorophyll-a" = 2)) %>% 
     column_spec(seq(2,9,2), 
                 background = "lightgrey")
 

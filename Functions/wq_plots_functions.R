@@ -34,7 +34,7 @@ getFIData <-function(x){
   fiPlotsData <- list()
   j<-1
   for(i in wq_ind){
-    fiPlotsData[[j]] <- x[[1]]$importancePlot$data/sum(x[[1]]$importancePlot$data)
+    fiPlotsData[[j]] <- x[[i]]$importancePlot$data/sum(x[[i]]$importancePlot$data)
     j<-j+1
   }
   fiPlotsData <- do.call("cbind", fiPlotsData)
