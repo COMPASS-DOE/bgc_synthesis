@@ -32,64 +32,28 @@
                  purrr, #tools to iterate rowwise through a dataframe (used for pmap)
                  beepr, # yell at me when you're done
                  dataRetrieval,
-                 caret) # USGS's package to pull data from their portal
+                 caret, 
+                 ggpubr) # USGS's package to pull data from their portal
   source("Functions/interpret_patterns_functions.R")
   
   #read in prediction data
   CBVpred <- read_csv("data_NERR/output/cbv_hf_wq_predictions.csv")
   OWCpred <- read_csv("data_NERR/output/owc_hf_wq_predictions.csv")
 
-# 2. Hourly mean of nutrient data -----------------------------------------
-
-  #return mean nutrient information each hour for first half of data
-  hf_data_cbv_summary_first <- getSummary(CBVpred, "CBV", 1:(nrow(CBVpred)/2))
-  hf_data_owc_summary_first <- getSummary(OWCpred, "OWC", 1:(nrow(OWCpred)/2))
+# 2. Hourly mean of nutrient data for each year -----------------------------------------
   
+  site_summaries <- list()
   
+  site_summary_cbv <- getDiurnalByYear(CBVpred, "CBV", 2002:2020)
+  site_summary_owc <- getDiurnalByYear(OWCpred, "OWC", 2002:2020)
   
-  #combined data for first half of data
-  hf_data_all_first <- rbind(hf_data_cbv_summary_first, hf_data_owc_summary_first) 
-  
-  #return mean nutrient information each hour for second half of data
-  hf_data_cbv_summary_sec <- getSummary(CBVpred, "CBV", (nrow(CBVpred)/2):nrow(CBVpred))
-  hf_data_owc_summary_sec <- getSummary(OWCpred, "OWC", (nrow(OWCpred)/2):nrow(OWCpred))
-  
-  #combined data for second half of data
-  hf_data_all_sec <- rbind(hf_data_cbv_summary_sec, hf_data_owc_summary_sec)
-  
-  
-  #create polar chart for each nutrient
-  nh4PPall_first <- ggplot(hf_data_all_first, aes(x=hour, y=nh4.hour.mean, color = label))+
-    geom_point()+coord_polar()+ theme(legend.position = "none")
-  
-  no3PPall_first <- ggplot(hf_data_all_first, aes(x=hour, y=no3.hour.mean, color = label))+
-    geom_point()+coord_polar()+ theme(legend.position = "none")
-  
-  po4PPall_first <- ggplot(hf_data_all_first, aes(x=hour, y=po4.hour.mean, color = label))+
-    geom_point()+coord_polar()+ theme(legend.position = "none")
-  
-  
-  chlaPPall_first <- ggplot(hf_data_all_first, aes(x=hour, y=chla.hour.mean, color = label))+
-    geom_point()+coord_polar()+ theme(legend.position = "none")
-  
-  #create polar chart for each nutrient
-  nh4PPall_sec<- ggplot(hf_data_all_sec, aes(x=hour, y=nh4.hour.mean, color = label))+
-    geom_point()+coord_polar()+ theme(legend.position = "none")
-  
-  no3PPall_sec <- ggplot(hf_data_all_sec, aes(x=hour, y=no3.hour.mean, color = label))+
-    geom_point()+coord_polar()+ theme(legend.position = "none")
-  
-  po4PPall_sec <- ggplot(hf_data_all_sec, aes(x=hour, y=po4.hour.mean, color = label))+
-    geom_point()+coord_polar()+ theme(legend.position = "none")
-  
-  
-  chlaPPall_sec <- ggplot(hf_data_all_sec, aes(x=hour, y=chla.hour.mean, color = label))+
-    geom_point()+coord_polar()+ theme(legend.position = "none")
-  
-  #plot
-  ggarrange(nh4PPall_first, no3PPall_first, po4PPall_first, chlaPPall_first, 
-            nh4PPall_sec, no3PPall_sec, po4PPall_sec, chlaPPall_sec, 
-            nrow = 2, ncol = 4)
+  for(val in 1:(length(site_summary_cbv)-1)){
+    
+    site_summaries[[val]] <-try( rbind(site_summary_cbv[[val]], site_summary_owc[[val]]) %>%
+                              plotNutrients(year = 2001+val))
+    
+  }
+  ggarrange(plotlist = site_summaries, ncol=20)
   
 
 # 3. Create coord plots for each month ------------------------------------

@@ -22,6 +22,44 @@ getSummary <- function(x, label, rowsKeep = 1:nrow(x)){
   return(summaryByDM)
 }
 
+getDiurnalByYear <- function(x, label, r){
+  
+  summary_years <- list()
+  i <- 1
+  
+  for(val in r){
+    
+    #range of date
+    year <- which(x$datetime_round >= paste0(val,"-01-01 00:00:00") & 
+                    x$datetime_round < paste0(val+1,"-01-01 00:00:00"))
+    #range of data
+    summary_years[[i]] <- getSummary(x, label, year)
+    
+    #counter
+    i<-i+1
+  }
+  
+  return(c(summary_years, length(year)))
+}
+
+plotNutrients <- function(t, year, nuts = list()){
+  t <- as.data.frame(t)
+  #create polar chart for each nutrient
+  nuts[[1]] <- ggplot(t, aes(x=hour, y=nh4.hour.mean, color = label))+
+    geom_point()+coord_polar()+ theme(legend.position = "none")
+  
+  nuts[[2]] <- ggplot(t, aes(x=hour, y=no3.hour.mean, color = label))+
+    geom_point()+coord_polar()+ theme(legend.position = "none")
+  
+  nuts[[3]] <- ggplot(t, aes(x=hour, y=po4.hour.mean, color = label))+
+    geom_point()+coord_polar()+ theme(legend.position = "none")
+  
+  nuts[[4]] <- ggplot(t, aes(x=hour, y=chla.hour.mean, color = label))+
+    geom_point()+coord_polar()+ theme(legend.position = "none")
+  
+  return(ggarrange(plotlist = nuts, nrow=4, ncol=1))
+}
+
 getSummaryMonthH <- function(x1, label1, x2, label2){
   
   #read in cbv data
