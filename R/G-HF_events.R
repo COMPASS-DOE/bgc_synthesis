@@ -43,6 +43,8 @@
   
   #Functions for HF events
   source("Functions/HF_events_functions.R")
+  #Load in necessary functions to plot
+  source("Functions/eval_HF_functions.R")
   
   #Variables treated as constants
   source("Constants/initial_model_constants.R")
@@ -50,7 +52,21 @@
   #HF predictions
   hf_data_cbv <- read_csv("data_NERR/output/cbv_hf_wq_predictions.csv")
   hf_data_owc <- read_csv("data_NERR/output/owc_hf_wq_predictions.csv")
+  
+  
 
+# Add site data to predictions -------------------------------------------
+
+  #1. Read in data
+  siteDataCBV <- preProcessData("data_NERR/output/cbv_hf_wq.csv", wq_predictors) %>% 
+                select(site)
+  hf_data_cbv_site <- cbind(hf_data_owc, siteData)
+  
+  #1. Read in data
+  siteDataOWC <- preProcessData("data_NERR/output/owc_hf_wq.csv", wq_predictors) %>% 
+    select(site)
+  hf_data_owc_site <- cbind(hf_data_owc, siteData)
+  
 
 # Seiches -----------------------------------------------------------------
 
@@ -59,6 +75,7 @@
   
   createPlots(oct272019seiche, c(hf_data_owc$datetime_round[which(hf_data_owc$datetime_round == as.Date("2019-11-1 0:00"))[1]]))
 
+  
 # Hurricanes --------------------------------------------------------------
 
   sandy <- hf_data_cbv_site[hf_data_cbv_site$datetime_round > "2012-10-24 22:00" & hf_data_cbv$datetime_round < "2012-10-31 4:00", ]
