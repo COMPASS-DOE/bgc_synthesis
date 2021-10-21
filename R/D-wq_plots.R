@@ -39,10 +39,14 @@
          hydroGOF, 
          pdp, 
          DALEXtra, 
-         kableExtra)
+         kableExtra, 
+         grid)
   
   #Load in necessary functions to plot
   source("Functions/wq_plots_functions.R")
+  
+  #Load in necessary functions to train 
+  source("Functions/all_plots_functions.R")
   
   #Load in necessary functions to train 
   source("Functions/train_Rforest_functions.R")
@@ -50,8 +54,7 @@
   #Variables treated as constants
   source("Constants/initial_model_constants.R")
   
-  #indexes of wq 
-  wq_ind <- seq(2,11,3)
+  
 
 # 2. Read location data ---------------------------------------------------
 
@@ -123,14 +126,22 @@
   
   ggarrange(plotlist=c(cbv_avp, owc_avp), ncol = 4, nrow=2)
 
-
-# Feature Importance Plots ------------------------------------------------
-
-  cbv_fi <- makeFIPlots(result_cbv_rf)
-  owc_fi <- makeFIPlots(result_owc_rf)
-  ggarrange(plotlist=c(cbv_fi, owc_fi), ncol=4, nrow=2, labels = c("cbv", rep("",3), "owc"))
-
-
+# Feature Importance Plots --------------------------------------------------
+  
+  #find importance for each random forest model in reference table
+  importance_cbv_rf <- grabAllImportance(result_cbv_rf, "randomForest")
+  importance_owc_rf <- grabAllImportance(result_owc_rf, "randomForest")
+  
+  #group importance by predictors (1- met, 2 - wq, 3 - all)
+  group_importance_cbv_rf <- clusterChartModel(importance_cbv_rf, reference_table)
+  group_importance_owc_rf <- clusterChartModel(importance_owc_rf, reference_table)
+  
+  #Create importance plots of predictors for owc and cbv of the best architecture:
+  #randomForest
+  ggarrange(createSiteImportancePlots(group_importance_cbv_rf, "cbv", 2),
+            createSiteImportancePlots(group_importance_owc_rf, "owc", 2), nrow = 2, ncol=1)
+  
+  
 # Feature Importance Data -------------------------------------------------
 
   #Collect data
@@ -149,13 +160,59 @@
                        "Discharge", 
                        "Time of Day")
   sums <- apply(table, 1, sum) 
-  table <- table[c(7, 8, 1, 4, 3, 5, 6, 2),] %>% relocate(1, 5, 2, 6, 3, 7, 4, 8) 
+  table <- table %>% as.data.frame() %>% relocate(1, 5, 2, 6, 3, 7, 4, 8) 
   kable(table, col.names = NULL) %>% 
     kable_classic() %>% 
-    add_header_above(c(" " = 1, "Ammonia" = 2, "Nitrate" = 2, "Phosphate" = 2, "Chlorophyll-a" = 2)) %>% 
+    add_header_above(c(" " = 1, "Ammonia" = 2, "Phosphate" = 2, "Nitrate" = 2, "Chlorophyll-a" = 2)) %>% 
     column_spec(seq(2,9,2), 
                 background = "lightgrey")
+  
 
+  diffTable <- matrix(nrow =8, ncol=4)
+  j<-1
+  for(i in seq(1,7,2)){
+    diffTable[,j] <- table[,i]-table[,i+1]
+    j<-j+1
+  }
+  rownames(diffTable) <- c("Water Temperature", 
+                       "Specific Conductivity", 
+                       "Dissolved Oxygen", 
+                       "Depth", 
+                       "pH", 
+                       "Turbidity", 
+                       "Discharge", 
+                       "Time of Day")
+  diffTable
+  max(abs(diffTable))
+  
+  diffTableBind <- rbind(cbind(-diffTable[,1], "ammonia"),
+                         cbind(-diffTable[,2],"phosphate"),
+                         cbind(-diffTable[,3], "nitrate"),
+                         cbind(-diffTable[,4], "chlorophyll a")) %>% 
+                  cbind(rownames(.)) %>% as.data.frame()
+                         
+  
+  colnames(diffTableBind) <- c("value", "nutrient", "predictor")
+  
+  diffTableBind <- diffTableBind %>% 
+                    mutate(value = as.numeric(value))
+  diffPlots <-list()
+  j <- 1
+  colorsDiff <- c("#56B4E9", "#F0E442", "#D55E00", "#CC79A7" )
+  for(val in unique(diffTableBind$nutrient)){
+    diffPlots[[j]] <- ggplot(diffTableBind[diffTableBind$nutrient == val,], aes(x=value, y = predictor, fill = diffTableBind$predictor))+
+                    geom_bar(stat="identity", position = "dodge") +
+                    theme_classic()+
+                    xlim(-0.3, 0.3)+
+                    xlab("% MSE")+
+                    theme(axis.title.y=element_blank(),
+                          axis.text.y=element_blank(),
+                          axis.ticks.y=element_blank(),
+                          axis.line.y = element_blank())
+    j<-j+1
+  }
+  
+  ggarrange(plotlist = diffPlots[c(1,3,2,4)], nrow =1)
 # Partial Dependency Plots ---------------------------------------------
 
   #Partial Dependency Information with DALEX package
