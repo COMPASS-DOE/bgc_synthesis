@@ -1,4 +1,4 @@
-# Changes in diurnal patterns of nutrients and chlorphyll-a on disturbance event and decadel timescales revealed by machine learning
+# Create high resolution nutrient and chlorphyll-a concentration on disturbance event and decadel timescales revealed by random forests
 
 ## Overview
 
