@@ -200,7 +200,8 @@
   j <- 1
   colorsDiff <- c("#56B4E9", "#F0E442", "#D55E00", "#CC79A7" )
   for(val in unique(diffTableBind$nutrient)){
-    diffPlots[[j]] <- ggplot(diffTableBind[diffTableBind$nutrient == val,], aes(x=value, y = predictor, fill = diffTableBind$predictor))+
+    diffPlots[[j]] <- ggplot(diffTableBind[diffTableBind$nutrient == val,], 
+                             aes(x=value, y = predictor, fill = unique(diffTableBind$predictor)))+
                     geom_bar(stat="identity", position = "dodge") +
                     theme_classic()+
                     xlim(-0.3, 0.3)+
