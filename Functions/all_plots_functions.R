@@ -23,7 +23,32 @@ createCorr <- function(dt, pred){
     select(pred) %>% 
     na.omit() %>% 
     cor() %>% 
-    as.matrix()
+    as.matrix() 
+  
+  rownames(corr_dt) <- c("Water Temperature",
+                            "Conductivity",
+                            "Dissolved Oxygen",
+                            "Depth",
+                            "pH",
+                            "Turbidity",
+                            "Discharge",
+                            "Time of Day",
+                            "Ammonia",
+                            "Nitrate",
+                            "Phosphate",
+                            "Chlorophyll a")
+  colnames(corr_dt) <- c("Water Temperature",
+                            "Conductivity",
+                            "Dissolved Oxygen",
+                            "Depth",
+                            "pH",
+                            "Turbidity",
+                            "Discharge",
+                            "Time of Day",
+                            "Ammonia",
+                            "Nitrate",
+                            "Phosphate",
+                            "Chlorophyll a")
   
   p.mat <- cor.mtest(corr_dt)
   
@@ -109,10 +134,18 @@ clusterChartModel <- function(imp_model, ref_table = reference_table){
 
 #by signature: a single feature importance chart
 createImpPlot <- function(x, y, label, pred){
+  
+  #group nutrient data by y (ex. "nh4")
   temp <- x[[pred]][which(x[[pred]]$group == y),]
-  colRef <- x[[pred]][which(x[[pred]]$group == y),]
+  
+  #color reference
+  colRef <- temp
+  
+  #set order of the bars to be largest to smallest
   temp$metric <- factor(temp$metric, levels = temp$metric[order(temp$values)])
+  
   sumValues <- sum(temp$values)
+  
   tempG <- ggplot(temp, aes(x = metric, y = (values/sumValues * 100), fill = colRef$metric))+
     geom_bar(position="dodge", stat="identity")+
     coord_flip()+
@@ -122,8 +155,21 @@ createImpPlot <- function(x, y, label, pred){
           axis.ticks.y=element_blank(),
           panel.background = element_rect(fill = "white",
                                           colour = "white"), 
-          axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
-    theme(legend.position = "none")
+          axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), 
+          legend.position = "none")+
+    scale_fill_manual(values=c("#E69F00", 
+                               "#009E73",
+                               "#F0E442",
+                               "#56B4E9",
+                              
+                               
+                               "#D55E00",
+                               
+                               "#0072B2",
+                               
+                               "#000000",
+                               
+                               "#CC79A7"))
   
   title.grob <- textGrob(
     label = paste(label, temp$group[1]),

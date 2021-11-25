@@ -27,6 +27,7 @@
     fiPlots <- list()
     j<-1
     for(i in wq_ind){
+      x[[i]]$importancePlot$data <- 100*(x[[i]]$importancePlot$data/sum(x[[i]]$importancePlot$data))
       fiPlots[[j]] <- x[[i]]$importancePlot
       j<-j+1
     }
@@ -38,7 +39,8 @@
     fiPlotsData <- list()
     j<-1
     for(i in wq_ind){
-      fiPlotsData[[j]] <- x[[i]]$importancePlot$data/sum(x[[i]]$importancePlot$data)
+      fiPlotsData[[j]] <- x[[i]][[2]]$fit$fit$fit$importance[,1]/
+                            sum(x[[i]][[2]]$fit$fit$fit$importance[,1])
       j<-j+1
     }
     fiPlotsData <- do.call("cbind", fiPlotsData)
@@ -102,16 +104,16 @@
       geom_rug(sides = "b", color = "#6dcad8")+
       theme(legend.position = "none", 
             panel.background = element_rect(fill = "white"))
-    q_cfsNH4 <- as_tibble(pdp[[20]]) %>%
-      mutate(`_label_` = stringr::str_remove(`_label_`, "random forest_")) %>%
-      ggplot(aes(`_x_`, `_yhat_`, color = "#6dcad8")) +
-      geom_line(size = 1.2, alpha = 0.8, color = "#6dcad8") +
-      labs(x = "q_cfs", 
-           y = lab)+
-      geom_rug(sides = "b", color = "#6dcad8")+
-      theme(legend.position = "none", 
-            panel.background = element_rect(fill = "white"))
-    sin_doyNH4 <- as_tibble(pdp[[23]]) %>%
+    # q_cfsNH4 <- as_tibble(pdp[[20]]) %>%
+    #   mutate(`_label_` = stringr::str_remove(`_label_`, "random forest_")) %>%
+    #   ggplot(aes(`_x_`, `_yhat_`, color = "#6dcad8")) +
+    #   geom_line(size = 1.2, alpha = 0.8, color = "#6dcad8") +
+    #   labs(x = "q_cfs",
+    #        y = lab)+
+    #   geom_rug(sides = "b", color = "#6dcad8")+
+    #   theme(legend.position = "none",
+    #         panel.background = element_rect(fill = "white"))
+    sin_doyNH4 <- as_tibble(pdp[[20]]) %>%
       mutate(`_label_` = stringr::str_remove(`_label_`, "random forest_")) %>%
       ggplot(aes(`_x_`, `_yhat_`, color = "#6dcad8")) +
       geom_line(size = 1.2, alpha = 0.8, color = "#6dcad8") +
@@ -126,8 +128,7 @@
                          DO_mglNH4, 
                          DepthNH4, 
                          pHNH4, 
-                         TurbNH4, 
-                         q_cfsNH4, 
+                         TurbNH4,  
                          sin_doyNH4, 
                          ncol = 2, 
                          nrow = 4)

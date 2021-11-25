@@ -39,7 +39,8 @@
          hydroGOF, 
          pdp, 
          DALEXtra, 
-         kableExtra)
+         kableExtra,
+         grid)
   
   #Load in necessary functions to plot
   source("Functions/all_plots_functions.R")

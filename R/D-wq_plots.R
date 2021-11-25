@@ -88,7 +88,7 @@
   #define columns
   pred <- c(wq_predictors, "nh4", "no3", "po4", "chla")
   
-  createCorrComps(cbv_all, owc_all, pred)
+  corrData <- createCorrComps(cbv_all, owc_all, pred)
 
 
 # 5. Table of training metrics --------------------------------------------
@@ -168,7 +168,7 @@
                 background = "lightgrey")
   
 
-  diffTable <- matrix(nrow =8, ncol=4)
+  diffTable <- matrix(nrow = length(wq_predictors), ncol=4)
   j<-1
   for(i in seq(1,7,2)){
     diffTable[,j] <- table[,i]-table[,i+1]
@@ -180,7 +180,6 @@
                        "Depth", 
                        "pH", 
                        "Turbidity", 
-                       "Discharge", 
                        "Time of Day")
   diffTable
   max(abs(diffTable))

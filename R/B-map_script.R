@@ -82,10 +82,10 @@
                                  rep(mean_spCond_cbv[5],3)))
   
   #Label sites by location
-  siteName <- as.factor(c(rep("Claybank", 2), 
-                          rep("Goodwin Islands",2), 
-                          rep("Sweethall",4), 
-                          rep("Taskinas Creek", 3)))
+  siteName <- as.factor(c(rep(3, 2), 
+                          rep(4,2), 
+                          rep(1,4), 
+                          rep(2, 3)))
 
 
 
@@ -94,6 +94,9 @@
     cbind(ConductivityCBV, siteName) %>% 
     mutate(ConductivityCBV = as.numeric(as.character(ConductivityCBV)))
 
+  cbv <- cbv[!duplicated(cbv$siteName),]
+    
+    
   #Define map area
   uscbv <- c(left = -77, bottom = 37.1, right = -76.25, top = 37.7)
   
@@ -101,10 +104,9 @@
   cbv_map<- get_stamenmap(uscbv, zoom = 14, maptype = "terrain")
   
   ggmap(cbv_map, base_layer=ggplot(data=cbv, aes(x=lat, y=long, color = ConductivityCBV))) +
-    geom_point()+
-    geom_text(aes(label=siteName), color = "black", size = 3, vjust = 1)+
+    geom_point(size = 6)+
     theme(axis.text.x = element_text(angle = 90))+
-    scale_color_gradient(low="blue", high="red")
+    scale_color_gradient(low="blue", high="yellow")
 
 
 # York Town Location Map --------------------------------------------------
@@ -129,17 +131,18 @@
                                   rep(mean_spCond_owc[5],2)))
   
   #Repeat site names for same locations
-  siteName <- as.factor(c(rep("Berlin Road", 2), 
-                          rep("Darrow Road",2), 
-                          rep("Lower Estuary", 2), 
-                          rep("State Route 2",2), 
-                          rep("State Route 6",2)))
+  siteName <- as.factor(c(rep(1, 2), 
+                          rep(2,2), 
+                          rep(4, 2), 
+                          rep(3,2), 
+                          rep(5,2)))
 
   #bind conductivity and site name information with locations
   owc <- owc[-7,]%>% 
     cbind(ConductivityOWC, siteName) %>% 
     mutate(ConductivityOWC = as.numeric(as.character(ConductivityOWC)))
 
+  owc <- owc[!duplicated(owc$siteName),]
 
   #Define map area for owc
   usowc <- c(left = -82.52, bottom = 41.345, right = -82.5, top = 41.39)
@@ -147,10 +150,10 @@
   #Create a stamen map
   owc_map<-get_stamenmap(usowc, zoom = 14, maptype = "terrain") 
   
-  ggmap(owc_map, base_layer = ggplot(data=owc, aes(x=lat, y=long, color = ConductivityOWC))) + geom_point()+
-    geom_text(aes(label=siteName), color = "black", size = 3, vjust = 1)+
+  ggmap(owc_map, base_layer = ggplot(data=owc, aes(x=lat, y=long, color = ConductivityOWC))) + 
+    geom_point(size = 3)+
     theme(axis.text.x = element_text(angle = 90))+
-    scale_color_gradient(low="blue", high="red")
+    scale_color_gradient(low="blue", high="yellow")
 
 
 # Old Woman Creek Location Map --------------------------------------------

@@ -10,7 +10,6 @@ wq_predictors <- c("Temp.mean",
                    "Depth.mean", 
                    "pH.mean", 
                    "Turb.mean", 
-                   "q_cfs.mean.5", 
                    "sin_doy")
 met_predictors <- c("ATemp.mean", 
                     "RH.mean", 

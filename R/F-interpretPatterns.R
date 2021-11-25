@@ -55,6 +55,7 @@
   }
   ggarrange(plotlist = site_summaries, ncol=20)
   
+  
 
 # 3. Create coord plots for each month ------------------------------------
 
