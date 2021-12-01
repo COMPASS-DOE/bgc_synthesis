@@ -4,32 +4,24 @@
 ##
 ## Purpose: Initial testing of models: what set of parameters works best?
 ##
-## Author: Peter Regier and Matt Duggan
+## Authors: Matt Duggan and Peter Regier
 ##
-## Date Created: 2021-05-27
+## Created: 2021-05-27
+## Updated: 2021-11-30
 ##
-## Email: peter.regier@pnnl.gov
+## Contact: peter.regier@pnnl.gov
 ##
 ## Notes:
 ##   
-## This script helps us decide what set of parameters is most useful for predicting
-## nutrients/chla, and which package to use. This same workflow should be useful for 
-## tuning models and other optimization. 
-
-## Next steps: 
-## integrate iRF into model selection loop
-## select ranger v randomForest v iRF; tune mtry, ntrees, etc
-## streamline / bulletproof the model creation workflow
-## once those are done, bonus would be starting on 
+## This script creates the models and associated information used in this 
+## manuscript. Models are created using the 'randomForest' package, and we only
+## use the water quality models, although other models are created for initial
+## comparisons that helped us select a parsimonious set of predictors that balance
+## model strength and simplicity (i.e., all parameters from a single instrument). 
 
 ## Outputs
 ## figure comparing different predictor inputs (see plot call below)
 ## figure comparing performance of randomForest, ranger, and iRF::randomForest
-
-## I think we'll want to use iRF at some point regardless of how it compares to
-## rF and ranger because it returns interactions. Ideal is formatting output of
-## script as Rmd
-##
 
 
 # 1. setup ----------------------------------------------------------------
@@ -63,18 +55,24 @@
 
 
 # 2. Read location data ---------------------------------------------------
-
-  #remove outliers from cbv
-  cbv_all <- read_station("./data_NERR/output/cbv_for_models.csv") %>% 
+  
+  cbv_all <- read_csv("./data_NERR/output/cbv_for_models.csv") %>% 
+    mutate(sin_doy = sin(yday(lubridate::date(datetime_round)) / (365.25 * pi))) %>%
+    select(-datetime_round, -site) %>% 
+    mutate(across(where(is.character), as.numeric)) %>% 
+    #select_if(is.double) %>% 
     filter(is.na(no3) | no3 < 1, 
            is.na(po4) | po4 < 0.15, 
            is.na(chla) | chla < 200)
   
-  #remove outliers from owc
-  owc_all <- read_station("./data_NERR/output/owc_for_models.csv") %>% 
-    filter(is.na(no3) | no3 < 8, 
-           is.na(po4) | po4 < 0.1)
-
+  owc_all <- read_csv("./data_NERR/output/owc_for_models.csv") %>% 
+    mutate(sin_doy = sin(yday(lubridate::date(datetime_round)) / (365.25 * pi))) %>%
+    select(-datetime_round, -site) %>% 
+    mutate(across(where(is.character), as.numeric)) %>% 
+    #select_if(is.double) %>% 
+    filter(is.na(no3) | no3 < 1, 
+           is.na(po4) | po4 < 0.15, 
+           is.na(chla) | chla < 200)
 
 # 3. Reference table ------------------------------------------------------
 
@@ -97,14 +95,14 @@
   
   save(reference_table, file = "Model/referenceTable.RData")  
 
-# 4. Parrellel processing setup -------------------------------------------
+# 4. Parallel processing setup -------------------------------------------
 
 
   #Create an apply function for parrallel computing
   numCores <- detectCores()-1
   
-  #START cluster
-  cl <- makeCluster(numCores, outfile ='', setup = "sequential")
+  #START cluster (note: 'setup_strategy' used as 'setup' didn't work on Mac)
+  cl <- makeCluster(numCores, outfile ='', setup_strategy = "sequential")
   
   #export required constants
   clusterExport(cl, 
@@ -128,47 +126,28 @@
 
 # 5. Train RF models ------------------------------------------------------
 
-  #Train data on cbv location with ranger
-  result_cbv_ranger <- parApply(cl,reference_table,1, 
-                                function(x) choose_inputs(
-                                  cbv_all, 
-                                  x[1], 
-                                  eval(parse(text = x[2])), 
-                                  x[3],
-                                  modelType = "ranger",
-                                  importance = "impurity_corrected", 
-                                  prop = 8/10))
-  #Train data on owc location with ranger
-  result_owc_ranger <- parApply(cl,reference_table,1, 
-                                function(x) choose_inputs(
-                                  owc_all, 
-                                  x[1], 
-                                  eval(parse(text = x[2])), 
-                                  x[3],
-                                  modelType = "ranger",
-                                  importance = "impurity_corrected", 
-                                  prop = 8/10))
   #Train data on cbv location with random forest
-  result_cbv_rf <- parApply(cl,reference_table,1, 
+  result_cbv_rf <- parApply(cl,reference_table,1,
                             function(x) choose_inputs(
-                              cbv_all, 
-                              x[1], 
-                              eval(parse(text = x[2])), 
-                              x[3], 
-                              modelType = "randomForest", 
-                              importance = TRUE, 
-                              prop = 8/10))
-  #Train data on owc location with random forest
-  result_owc_rf <- parApply(cl,reference_table,1, 
-                            function(x) choose_inputs(
-                              owc_all, 
-                              x[1], 
-                              eval(parse(text = x[2])), 
+                              cbv_all,
+                              x[1],
+                              eval(parse(text = x[2])),
                               x[3],
-                              modelType = "randomForest", 
-                              importance = TRUE, 
+                              modelType = "randomForest",
+                              importance = TRUE,
                               prop = 8/10))
-  
+
+  #Train data on owc location with random forest
+  result_owc_rf <- parApply(cl,reference_table,1,
+                            function(x) choose_inputs(
+                              owc_all,
+                              x[1],
+                              eval(parse(text = x[2])),
+                              x[3],
+                              modelType = "randomForest",
+                              importance = TRUE,
+                              prop = 8/10))
+
   #END parrallel processing
   stopCluster(cl)
 
@@ -178,10 +157,8 @@
   #Save models
   save(result_owc_rf, file = "Model/randomForestOWC.RData")
   save(result_cbv_rf, file = "Model/randomForestCBV.RData")
-  save(result_owc_ranger, file = "Model/rangerOWC.RData")
-  save(result_cbv_ranger, file = "Model/rangerCBV.RData")
 
-  
+toc()
 
 # 7. Table of training metrics --------------------------------------------
 
