@@ -51,7 +51,7 @@ preProcessData <- function(x, pred){
 prepData <- function(x, y){
   x %>% 
     relocate(all_of(y)) %>% 
-    select(all_of(y), "datetime_round")
+    select(all_of(y), "datetime_round", "site")
 }
 
 
