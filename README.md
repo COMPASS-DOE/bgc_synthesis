@@ -1,5 +1,7 @@
 # Machine learning prediction of nitrate in fresh and saltwater estuaries
 
+## PLEASE NOTE: This repository contains an early version of this project, and is no longer the version of record. The link to the version to use will be posted here once available.
+
 ## Overview
 
 ### Get to know the data
